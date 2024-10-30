@@ -1,0 +1,5 @@
+pi pico is for 
+sensor and fusion
+esp32 is for 
+main code and encoders
+flip maybe c++ is sensors

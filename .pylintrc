@@ -1,0 +1,6 @@
+[MASTER]
+disable=
+    # Example: Disable unsupported imports
+    import-error,
+    # Disable unsupported docstring format check
+    missing-docstring,

@@ -1,6 +1,6 @@
-from machine import Pin, PWM
 import _thread
 import time
+from machine import Pin, PWM
 
 #movement distances
 #measured distances for amount of times encoders needs to turn

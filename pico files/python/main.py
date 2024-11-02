@@ -16,9 +16,9 @@ blocks = ((0,0,1),(2,2,4))#rows,colums,spot based on below
 #4[][][]2
 # [][][]
 #  3
-gates = ((0,0),(1,1))#row,colums based on above track
-lastGate = (1,1)#row,colums based on above track
-endPoint = (0,0)#row,colums based on 
+gates = ((0,0),(1,1))#row,colums based on below track
+lastGate = (1,1)#row,colums based on below track
+endPoint = (0,0)#row,colums based on below track
 # 0,1  ,2 ,3
 #[] [] [] []0
 #[] [] [] []1
@@ -30,9 +30,9 @@ endPoint = (0,0)#row,colums based on
 #**************************dependencys***************************************************
 
 #setting imputs
-import PathSolver as Path
-import GridMaker as Grid
-import Movement as Move
+import path_solver as Path
+import grid_maker as Grid
+import movement as Move
 
 Course = Grid.makeChanges(startPoint,endPoint,gates,lastGate,blocks)
 commands = Path.solvePath(Course)

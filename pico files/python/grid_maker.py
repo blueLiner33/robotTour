@@ -2,7 +2,6 @@
 import numpy as np#testing only
 grid = np.zeros((15, 12))
 
-
 def print_matrix(matrix):#testing function
     square_size = 3  
     rows, cols = matrix.shape
@@ -21,19 +20,16 @@ def print_matrix(matrix):#testing function
         for line in square_cols:
             print(line)
         print("\n" + "-" * 30)  
-
         
 def gate_change(gates, last_gate):  # changes grid based on both gates and last gate
     # normal gates
-    for i in range(len(gates)):
+    for i in range(len(gates)+1):
         grid[(gates[i-1][0]*3)+1, (gates[i-1][1]*3)+1] = 3
     #last gate
-    grid[(last_gate[0]*3)+1, (last_gate[1]*3)+1] = 4
-
+    grid[(last_gate[0]*3)+1, (last_gate[1]*3)+1] = -1
 
 def start_change(start_point):  # changes grid based on start point
-    # makes all the points on the outside 0
-
+        # makes all the points on the outside 0
     # does top and bottom
     for col in range(12):
         grid[0, col] = -1
@@ -44,16 +40,36 @@ def start_change(start_point):  # changes grid based on start point
         grid[row, 11] = -1
     # adds the start point
     if (3 >= start_point) and (start_point >= 0):#top
-        grid[0,(start_point*3)+1] = 1
+        grid[1,(start_point*3)+1] = 1
     elif (start_point >= 4) and (start_point <= 8):#right side
-        grid[((start_point-4)*3)+1,11] = 1
+        grid[((start_point-4)*3)+1,10] = 1
     elif (start_point >= 9) and (start_point <= 12):#bottom
-        grid[14, ((start_point-9)*3)+1] = 1
+        grid[13, ((start_point-9)*3)+1] = 1
     elif (start_point >= 13) and (start_point <= 17):#left side
-        grid[((start_point-13)*3)+1, 0] = 1
+        grid[((start_point-13)*3)+1, 1] = 1
     else:
-        print('start_point invalid')
+        raise ValueError ('start_point invalid')
 
+def get_cords(begin_point,stop_point,final_gate,gate_points):#returns the cords in the right format
+    #gates and lastgate
+    gate_cords = []#gate cord variable
+    last_cord = []#last cord variable
+    for i in range(len(gate_points)):#goes all the gates 
+        gate_cords.append(((gate_points[i-1][0]*3)+1, (gate_points[i-1][1]*3)+1))#adds them
+    last_cord = (final_gate[0]*3)+1, (final_gate[1]*3)+1 
+    #end and start
+    end = (stop_point[0]*3)+1, (stop_point[1]*3)+1#stores end
+    start = None#start variable
+    if (3 >= begin_point) and (begin_point >= 0):#top
+        start = (1,(begin_point*3)+1)
+    elif (begin_point >= 4) and (begin_point <= 8):#right side
+        start = (((begin_point-4)*3)+1,10)
+    elif (begin_point >= 9) and (begin_point <= 12):#bottom
+        start =  (13, ((begin_point-9)*3)+1)
+    elif (begin_point >= 13) and (begin_point <= 17):#left side
+        start =  (((begin_point-13)*3)+1, 1)
+
+    return start,end,last_cord,gate_cords
 
 def block_change(blocks):  # changes grid based on blocks
     #table[row][col]
@@ -69,30 +85,14 @@ def block_change(blocks):  # changes grid based on blocks
         else:
             print("invlid block or blocks")
 
-
 # makes changes to the grid based on the points
 def make_changes(start_point, end_point, gates, last_gate, blocks):
-    # makes start change
-    start_change(start_point)
     # makes end change
     grid[(end_point[0]*3)+1, (end_point[1]*3)+1] = 2
     #makes gate change
     gate_change(gates, last_gate)
     #make block change
     block_change(blocks)
+    # makes start change
+    start_change(start_point)
     return grid
-
-#makes distance matrix
-def distance_matrix(start_point):
-    table = np.full((15,12),np.inf)
-    #adds the start point
-    if (3 >= start_point) and (start_point >= 0):#top
-        table[0,(start_point*3)+1] = 1
-    elif (start_point >= 4) and (start_point <= 8):#right side
-        table[((start_point-4)*3)+1,11] = 1
-    elif (start_point >= 9) and (start_point <= 12):#bottom
-        table[14, ((start_point-9)*3)+1] = 1
-    elif (start_point >= 13) and (start_point <= 17):#left side
-        table[((start_point-13)*3)+1, 0] = 1
-    else:
-        print('error in value of start_point')

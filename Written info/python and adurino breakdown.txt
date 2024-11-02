@@ -1,1 +1,9 @@
-pip pico python is running 
+pi pico python 
+    motor pwm pins
+    data processing
+    uart 
+    path solving
+pi pico c++
+    both sensors
+    both encoder
+    uart

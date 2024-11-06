@@ -39,4 +39,4 @@ end_point = (3,3)#row,colums based on
 
 #grid = gm.make_changes(start_point,end_point,gate_points,last_gate_point,blocks)#making grid
 #gm.print_matrix(grid)
-#print(ps.give_commands(start_point,end_point,gate_points,last_gate_point,blocks))
+print(ps.give_commands(start_point,end_point,gate_points,last_gate_point,blocks))

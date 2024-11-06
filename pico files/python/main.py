@@ -1,6 +1,5 @@
 # ***********************for programming grid*******************************************
-GoalTime = 0
-startPoint = 17 #put which number it is
+start_point = 2 #put which number it is
 #for start points
 #   0,1  ,2 ,3
 #13[] [] [] []4
@@ -10,16 +9,20 @@ startPoint = 17 #put which number it is
 #17[] [] [] []8
 #  9,10,11,12
 
-blocks = ((0,0,1),(2,2,4))#rows,colums,spot based on below
+blocks = ((2,2,2),(2,2,3))#rows,colums,spot based on below|cannot have just one value
 #  1
 # [][][]
 #4[][][]2
 # [][][]
 #  3
-gates = ((0,0),(1,1))#row,colums based on below track
-lastGate = (1,1)#row,colums based on below track
-endPoint = (0,0)#row,colums based on below track
-# 0,1  ,2 ,3
+gate_points = ((0,0),(4,3),(2,2))#row,colums based on above track
+
+#cannot just have one value
+#excluded any gates that are reached through starting movement of forward(.5)
+
+last_gate_point = (1,1)#row,colums based on above track
+end_point = (3,3)#row,colums based on
+#0, 1  ,2 ,3
 #[] [] [] []0
 #[] [] [] []1
 #[] [] [] []2
@@ -30,13 +33,15 @@ endPoint = (0,0)#row,colums based on below track
 #**************************dependencys***************************************************
 
 #setting imputs
-import path_solver as Path
-import grid_maker as Grid
+import path_solver as path
 import movement as Move
 
-Course = Grid.makeChanges(startPoint,endPoint,gates,lastGate,blocks)
-commands = Path.solvePath(Course)
-speed = Move.getmovementSpeed(GoalTime,commands)
+commands = path.give_commands(start_point,end_point,gate_points,last_gate_point,blocks)
+if len(commands) >= 30:
+    raise ValueError ('manual solve most likely needed commands greater than 30')
+else:
+    pass
+#commands = ()
 #****************************************************************************************
 
 

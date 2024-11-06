@@ -1,6 +1,6 @@
 import _thread
 import time
-from machine import Pin, PWM
+from machine import Pin, PWM, UART
 
 #movement distances
 #measured distances for amount of times encoders needs to turn
@@ -127,7 +127,7 @@ def left(distance,speed):
     MotorPower.on()
     while RightMotor.pos >= (distanceTurn*distance):
         RightMotor.PWM_Pin.duty_u16(int(speed))
-        LeftMotor.PWM_Pin.duty_16(int(speed))
+        LeftMotor.PWM_Pin.duty_16(int(speed)
         RightMotor.SpinForward()
         LeftMotor.SpinBackward()
         #stopping it

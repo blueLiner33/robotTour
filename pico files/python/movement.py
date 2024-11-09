@@ -1,5 +1,5 @@
 import _thread
-import time
+import utime as time
 from machine import Pin, PWM, UART
 
 #movement distances
@@ -35,20 +35,6 @@ class motor:
         self.pos = 0
         self.prev_c1_state = self.c1.value()
         self.prev_c2_state = self.c2.value()
-
-
-    def update_pos(self):#updates motor pos
-        c1_current = self.c1.value()
-        c2_current = self.c2.value()
-        
-        if c1_current != self.prev_c1 or c2_current != self.prev_c2:
-            if c1_current == c2_current:
-                self.pos+= 1 #forward
-            else:
-                self.pos -= 1  # backward 
-
-            self.prev_c1_state = c1_current
-            self.prev_c2_state = c2_current
     def SpinForward(self):#motor command for forward
         self.m1.on()
         self.m2.off()
@@ -78,13 +64,12 @@ def BothMotorPos():#wrapper function for threads
 def getmovementSpeed(target,commands):
     totalCommands = len(commands)
     #assumes 50cm boxes
-    rotationsMax = 0#amount of rotations when running at max in secounds for one to complete
     rotationsWheels = 0#keeps track for math
     wheelRadius = 0#wheel radius in cm
     width = 0 #width between the wheels
     straightRotations = 50/(wheelRadius*3.14159*2)
     turnRotations = width/(4*wheelRadius)
-    
+    startMovement =25/(wheelRadius*3.14159*2)
     for command in commands:
         if command == 0 or 3:
             rotationWheels+=straightRotations
@@ -92,8 +77,9 @@ def getmovementSpeed(target,commands):
             rotationsWheels+=turnRotations
         else:
             pass
+    rotationsWheels+=startMovement
     tpr = target-(totalCommands*(0.1))/rotationsWheels #tpr = time per rotations|in secounds
-    return tpr/rotationsMax #returns speed
+    return tpr 
 
 #movement commands___________________
 #robot forward
@@ -115,23 +101,4 @@ def right(distance,speed):
     while RightMotor.pos >= -(distanceTurn*distance):
         RightMotor.PWM_Pin.duty_u16(int(speed))
         LeftMotor.PWM_Pin.duty_16(int(speed))
-        RightMotor.SpinBackward()
-        LeftMotor.SpinForward()
-        #stopping it
-    LeftMotor.stopPower()
-    RightMotor.stopPower()
-    MotorPower.off()  
-    time.sleep(0.1)       
-#robot turn left
-def left(distance,speed):
-    MotorPower.on()
-    while RightMotor.pos >= (distanceTurn*distance):
-        RightMotor.PWM_Pin.duty_u16(int(speed))
-        LeftMotor.PWM_Pin.duty_16(int(speed)
-        RightMotor.SpinForward()
-        LeftMotor.SpinBackward()
-        #stopping it
-    LeftMotor.stopPower()
-    RightMotor.stopPower()
-    MotorPower.off()   
-    time.sleep(0.1)     
+       

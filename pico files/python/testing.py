@@ -1,9 +1,8 @@
 #imports
-#from ulab import numpy as np use for real
-#import numpy as np #testing only
-import grid_maker as gm
+#import grid_maker as gm
 import path_solver as ps
 #import heaper as heap
+
 # ***********************for programming grid*******************************************
 #add when it has to be manual solve
 start_point = 2 #put which number it is

@@ -28,9 +28,7 @@ end_point = (3,3)#row,colums based on
 #[] [] [] []2
 #[] [] [] []3
 #[] [] [] []4
-#****************************************************************************************
-
-#**************************dependencys***************************************************
+#**************************dependency***************************************************
 
 #setting imputs
 import path_solver as path
@@ -41,25 +39,4 @@ if len(commands) >= 30:
     raise ValueError ('manual solve most likely needed commands greater than 30')
 else:
     pass
-#commands = ()
-#****************************************************************************************
-
-
 #***********************************Main Code********************************************
-#starting movement
-Move.forward(.5,Move.speed)
-
-#make sure motors are synced 
-#_thread.start_new_thread(Move.BothMotorPos, ())#starting new thread
-
-
-for command in Move.MotorCommands():
-    if command == 1:
-        Move.left(1,speed)
-    elif command == 2:
-        Move.right(1,speed)
-    elif command == 3:
-        Move.forward(1,speed)
-    else:
-        pass
-Move.MotorPower.off()#redudant but to make sure

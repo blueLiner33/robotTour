@@ -2,6 +2,13 @@
   "configurations": [
     {
       "name": "windows-gcc-x64",
+      "forcedInclude": [
+          "<Wire.h>",
+          "Adafruit_BNO08x_RVC.h",
+          "hardware/clocks.h",
+          "hardware/gpio.h",
+          "<Arduino.h>"
+      ],
       "includePath": [
         "${workspaceFolder}/**"
       ],

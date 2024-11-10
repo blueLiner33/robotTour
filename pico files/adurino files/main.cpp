@@ -2,6 +2,7 @@
 #include "Adafruit_BNO08x_RVC.h"
 #include "hardware/clocks.h"
 #include "hardware/gpio.h"
+#include <Arduino.h>
 // pin notes
 //encoder below 
 //serial 2 for other pico
@@ -42,6 +43,8 @@ void encoderISR2() {
   encoderCount2++;
   lastTime2 = micros(); 
 }
+
+UART Serial2(8, 9, 0, 0);
 
 void setup() {
   Serial.begin(115200); 

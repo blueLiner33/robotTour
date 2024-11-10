@@ -1,74 +1,99 @@
 #include <Wire.h>
-#include <Adafruit_BNO08x.h>
-//format M:leftMotorPos,rightMotorPos,x,y,qw,qx,qy,qz
+#include "Adafruit_BNO08x_RVC.h"
+#include "hardware/clocks.h"
+#include "hardware/gpio.h"
+// pin notes
+//encoder below 
+//serial 2 for other pico
+//TX (Transmit): GPIO 17
+//RX (Receive): GPIO 16
+//Board 3V to BNO085 Vin (Red Wire). 
+//Board GND to BNO085 GND (Black Wire)
+//Board RX to BNO085 SDA (Blue Wire)
+//Board 3V to BNO085 P0 (Purple Wire
+// Create rvc object
+Adafruit_BNO08x_RVC rvc = Adafruit_BNO08x_RVC();
 
-// Create BNO08x object
-Adafruit_BNO08x bno08x;
+// Motor encoders
+#define ENCODER_A1 12  // Encoder 1 A pin
+#define ENCODER_B1 11  // Encoder 1 B pin
+#define ENCODER_A2 6   // Encoder 2 A pin
+#define ENCODER_B2 7   // Encoder 2 B pin
 
-// Motor encoder positions (these are placeholders for actual encoder reading logic)
-int leftMotorPos = 0;
-int rightMotorPos = 0;
+volatile long encoderCount1 = 0;
+volatile long encoderCount2 = 0;
+volatile unsigned long lastTime1 = 0;
+volatile unsigned long lastTime2 = 0;
 
-// Assuming the motors increment their positions (you can replace this with real encoder reading logic)
-void updateMotorPositions() {
-  leftMotorPos += 10; // Example increment
-  rightMotorPos += 10; // Example increment
+#define GEAR_RATIO (244904.0 / 12000.0)
+#define CPR 14
+#define COUNTS_PER_REV (CPR * GEAR_RATIO)
+
+float RPM1 = 0;
+float RPM2 = 0;
+float degreesPerCount = 360.0 / COUNTS_PER_REV;
+
+void encoderISR1() {
+  encoderCount1++;
+  lastTime1 = micros(); 
+}
+
+void encoderISR2() {
+  encoderCount2++;
+  lastTime2 = micros(); 
 }
 
 void setup() {
-  Serial.begin(115200); // Start UART communication at 115200 baud rate
+  Serial.begin(115200); 
+  Serial1.begin(115200);
+  Serial2.begin(115200);
 
-  // Initialize BNO08x
-  if (!bno08x.begin()) {
-    Serial.println("Failed to find BNO08x sensor!");
-    while (1);
+  if (!rvc.begin(&Serial1)) { // Connect to the sensor over hardware serial
+    Serial.println("Could not find BNO08x!");
+    while (1)
+      delay(10);  // Infinite loop if the sensor is not found
   }
 
-  // Enable the rotation vector report (used for orientation data)
-  if (!bno08x.enableReport(SH2_ROTATION_VECTOR)) {
-    Serial.println("Could not enable rotation vector report!");
-    while (1);
-  }
+  pinMode(ENCODER_A1, INPUT_PULLUP);  // Set Encoder A1 pin
+  pinMode(ENCODER_B1, INPUT_PULLUP);  // Set Encoder B1 pin
+  pinMode(ENCODER_A2, INPUT_PULLUP);  // Set Encoder A2 pin
+  pinMode(ENCODER_B2, INPUT_PULLUP);  // Set Encoder B2 pin
 
-  // Allow some time for the sensor to start up
-  delay(100);
+  // Attach interrupts for Encoder 1 and Encoder 2
+  attachInterrupt(digitalPinToInterrupt(ENCODER_A1), encoderISR1, RISING);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_A2), encoderISR2, RISING);
 }
 
 void loop() {
-  sh2_SensorValue_t sensorValue;
-  if (bno08x.getSensorEvent(&sensorValue)) {
-    // Retrieve the quaternion data from BNO08x for orientation tracking
-    float qw = sensorValue.un.rotationVector.real;
-    float qx = sensorValue.un.rotationVector.i;
-    float qy = sensorValue.un.rotationVector.j;
-    float qz = sensorValue.un.rotationVector.k;
+  // Calculates RPM 
+  unsigned long currentTime1 = micros();
+  RPM1 = 60000000.0 / (currentTime1 - lastTime1); 
+  
+  // Calculates RPM 
+  unsigned long currentTime2 = micros();
+  RPM2 = 60000000.0 / (currentTime2 - lastTime2);  
 
-    // Calculate X and Y based on the robot's movement
-    // For simplicity, we'll use a basic assumption of movement
-    float x = leftMotorPos * 0.1;  // Example X movement, scale as necessary
-    float y = rightMotorPos * 0.1; // Example Y movement, scale as necessary
-
-    // Update motor positions (you'd replace this with real sensor feedback)
-    updateMotorPositions();
-
-    // Create and send the message via UART
-    Serial.print("M:");
-    Serial.print(leftMotorPos);   // Left motor position
-    Serial.print(",");
-    Serial.print(rightMotorPos);  // Right motor position
-    Serial.print(",");
-    Serial.print(x);              // X position (calculated from motors)
-    Serial.print(",");
-    Serial.print(y);              // Y position (calculated from motors)
-    Serial.print(",");
-    Serial.print(qw);             // Quaternion data for orientation
-    Serial.print(",");
-    Serial.print(qx);             
-    Serial.print(",");
-    Serial.print(qy);             
-    Serial.print(",");
-    Serial.println(qz);           // Quaternion data for orientation
-
-    delay(100); // Delay to prevent flooding the UART interface
+  Serial2.print(RPM1);   // Encoder 1 rpm
+  Serial2.print(",");
+  Serial2.println(degreesPerCount * encoderCount1);   // Encoder 1 position in degrees
+  
+  Serial2.print(RPM2);        // Encoder 2 rpm
+  Serial2.print(",");
+  Serial2.println(degreesPerCount * encoderCount2);   // Encoder 2 position in degrees
+  
+  BNO08x_RVC_Data heading;
+  if (!rvc.read(&heading)) {
+    return;
   }
+  
+  // Sends data
+  Serial2.print(heading.yaw);
+  Serial2.print(",");
+  Serial2.print(heading.x_accel);
+  Serial2.print(",");
+  Serial2.print(heading.y_accel);
+  Serial2.print(",");
+  Serial2.println(heading.z_accel);
+//
+  delay(100);
 }

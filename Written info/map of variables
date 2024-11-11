@@ -1,0 +1,5 @@
+main
+    current grid and point in it
+movement
+    pins for each motor
+    pid constants for each motor

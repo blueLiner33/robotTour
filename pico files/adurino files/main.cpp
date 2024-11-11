@@ -3,23 +3,12 @@
 #include "hardware/clocks.h"
 #include "hardware/gpio.h"
 #include <Arduino.h>
-// pin notes
-//encoder below 
-//serial 2 for other pico
-//TX (Transmit): GPIO 17
-//RX (Receive): GPIO 16
-//Board 3V to BNO085 Vin (Red Wire). 
-//Board GND to BNO085 GND (Black Wire)
-//Board RX to BNO085 SDA (Blue Wire)
-//Board 3V to BNO085 P0 (Purple Wire
-// Create rvc object
-Adafruit_BNO08x_RVC rvc = Adafruit_BNO08x_RVC();
 
 // Motor encoders
-#define ENCODER_A1 12  // Encoder 1 A pin
-#define ENCODER_B1 11  // Encoder 1 B pin
-#define ENCODER_A2 6   // Encoder 2 A pin
-#define ENCODER_B2 7   // Encoder 2 B pin
+#define ENCODER_A1 12
+#define ENCODER_B1 11
+#define ENCODER_A2 6
+#define ENCODER_B2 7
 
 volatile long encoderCount1 = 0;
 volatile long encoderCount2 = 0;
@@ -34,6 +23,9 @@ float RPM1 = 0;
 float RPM2 = 0;
 float degreesPerCount = 360.0 / COUNTS_PER_REV;
 
+// Create rvc object
+Adafruit_BNO08x_RVC rvc = Adafruit_BNO08x_RVC();
+
 void encoderISR1() {
   encoderCount1++;
   lastTime1 = micros(); 
@@ -44,59 +36,63 @@ void encoderISR2() {
   lastTime2 = micros(); 
 }
 
-UART Serial2(8, 9, 0, 0);
-
 void setup() {
-  Serial.begin(115200); 
-  Serial1.begin(115200);
-  Serial2.begin(115200);
+  Serial.begin(115200);          // USB serial
+  Serial1.begin(115200);         // Use Serial1 for the BNO08x sensor
+  Serial2.setTX(8);              // Set TX pin for Serial2 (UART1)
+  Serial2.setRX(9);              // Set RX pin for Serial2 (UART1)
+  Serial2.begin(115200);         // Initialize Serial2 for secondary device communication
 
-  if (!rvc.begin(&Serial1)) { // Connect to the sensor over hardware serial
+  if (!rvc.begin(&Serial1)) {
     Serial.println("Could not find BNO08x!");
-    while (1)
-      delay(10);  // Infinite loop if the sensor is not found
+    while (1) delay(10);
   }
 
-  pinMode(ENCODER_A1, INPUT_PULLUP);  // Set Encoder A1 pin
-  pinMode(ENCODER_B1, INPUT_PULLUP);  // Set Encoder B1 pin
-  pinMode(ENCODER_A2, INPUT_PULLUP);  // Set Encoder A2 pin
-  pinMode(ENCODER_B2, INPUT_PULLUP);  // Set Encoder B2 pin
+  pinMode(ENCODER_A1, INPUT_PULLUP);
+  pinMode(ENCODER_B1, INPUT_PULLUP);
+  pinMode(ENCODER_A2, INPUT_PULLUP);
+  pinMode(ENCODER_B2, INPUT_PULLUP);
 
-  // Attach interrupts for Encoder 1 and Encoder 2
   attachInterrupt(digitalPinToInterrupt(ENCODER_A1), encoderISR1, RISING);
   attachInterrupt(digitalPinToInterrupt(ENCODER_A2), encoderISR2, RISING);
 }
 
 void loop() {
-  // Calculates RPM 
   unsigned long currentTime1 = micros();
-  RPM1 = 60000000.0 / (currentTime1 - lastTime1); 
-  
-  // Calculates RPM 
   unsigned long currentTime2 = micros();
-  RPM2 = 60000000.0 / (currentTime2 - lastTime2);  
 
-  Serial2.print(RPM1);   // Encoder 1 rpm
-  Serial2.print(",");
-  Serial2.println(degreesPerCount * encoderCount1);   // Encoder 1 position in degrees
-  
-  Serial2.print(RPM2);        // Encoder 2 rpm
-  Serial2.print(",");
-  Serial2.println(degreesPerCount * encoderCount2);   // Encoder 2 position in degrees
-  
-  BNO08x_RVC_Data heading;
-  if (!rvc.read(&heading)) {
-    return;
+  if (currentTime1 != lastTime1) {  // Avoid division by zero
+    RPM1 = 60000000.0 / (currentTime1 - lastTime1);
+  } else {
+    RPM1 = 0; // No new pulses since last reading
   }
-  
-  // Sends data
-  Serial2.print(heading.yaw);
+
+  if (currentTime2 != lastTime2) {
+    RPM2 = 60000000.0 / (currentTime2 - lastTime2);
+  } else {
+    RPM2 = 0; // No new pulses since last reading
+  }
+
+  Serial2.print(RPM1);
   Serial2.print(",");
-  Serial2.print(heading.x_accel);
+  Serial2.println(degreesPerCount * encoderCount1);
+
+  Serial2.print(RPM2);
   Serial2.print(",");
-  Serial2.print(heading.y_accel);
-  Serial2.print(",");
-  Serial2.println(heading.z_accel);
-//
+  Serial2.println(degreesPerCount * encoderCount2);
+
+  BNO08x_RVC_Data heading;
+  if (rvc.read(&heading)) { // Proceed only if read was successful
+    Serial2.print(heading.yaw);
+    Serial2.print(",");
+    Serial2.print(heading.x_accel);
+    Serial2.print(",");
+    Serial2.print(heading.y_accel);
+    Serial2.print(",");
+    Serial2.println(heading.z_accel);
+  } else {
+    Serial2.println("RVC read failed");
+  }
+
   delay(100);
 }

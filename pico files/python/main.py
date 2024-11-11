@@ -1,4 +1,5 @@
 # ***********************for programming grid*******************************************
+target_time = 0 #the target time
 start_point = 2 #put which number it is
 #for start points
 #   0,1  ,2 ,3
@@ -29,14 +30,38 @@ end_point = (3,3)#row,colums based on
 #[] [] [] []3
 #[] [] [] []4
 #**************************dependency***************************************************
-
 #setting imputs
 import path_solver as path
-import movement as Move
+import movement as move
 
 commands = path.give_commands(start_point,end_point,gate_points,last_gate_point,blocks)
 if len(commands) >= 30:
     raise ValueError ('manual solve most likely needed commands greater than 30')
 else:
     pass
+rpm = move.get_movement_speed(target_time,commands)
+move.setting_motors(goal_rpm,rightMotor_current_rpm,leftMotor_current_rpm)#need to fix this here
+#*
+#*
+#need a function that always returns the motors rpm and the posistion of the robot. Just needs to read the data that is already coming in 
+#needs to use the threds feature.
+#*
+#*
 #***********************************Main Code********************************************
+def movement_loop():
+    move.forward(0.5,rpm)
+    move.stop()
+    for movement in commands:
+        if movement == 0:
+            move.forward(0.5,rpm)
+        elif movement == 1:
+            move.rigth(rpm)
+        elif movement == 2:
+            move.left(rpm)
+        elif movement == 3:
+            move.oneeighty(rpm)
+        else:
+            pass
+        move.stop()
+
+movement_loop()#loop that moves the robot

@@ -81,7 +81,7 @@ def list_commands(commands, start_point):
         heading = 'up'
     elif (start_point >= 13) and (start_point <= 17):  # left side
         heading = 'right'
-
+    #0 forward, 1 right, 2 left, 3 backward?
     prior_point = commands[0]
     sequence_commands = []
     for element in commands:

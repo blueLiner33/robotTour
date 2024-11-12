@@ -4,26 +4,6 @@ def zeros(rows, cols):
 
 grid = zeros(15, 12)  # makes a 15x12 matrix filled with zeros
 
-def print_matrix(matrix):  # testing function
-    square_size = 3  
-    rows, cols = len(matrix), len(matrix[0])
-    matrix_row = rows // square_size
-    matrix_col = cols // square_size
-
-    for square_row in range(matrix_row):
-        square_cols = [""] * square_size  
-
-        for chunk_col in range(matrix_col):
-            for i in range(square_size):
-                line = " ".join(f"{int(matrix[square_row * square_size + i][chunk_col * square_size + j]):2}"
-                                for j in range(square_size))
-                square_cols[i] += line + "   " 
-        
-        for line in square_cols:
-            print(line)
-        print("\n" + "-" * 30)
-
-
 def gate_change(gates, last_gate):  # changes grid based on both gates and last gate
     # normal gates
     for i in range(len(gates)):

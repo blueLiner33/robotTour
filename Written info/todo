@@ -1,11 +1,12 @@
+*current term*
+    fix lock function in movement to prevent corruption
 *short term*
-    fix senser logic
+    fix serial communication!
     fix the pid logic and movement module
-    make python code
-    make adurino code
     make robot 3d model
     order robot motors
 *long term*
     make aliegnment tool
     get sensor for robot when it is close
     look at notes if you are missing anything
+    add optical sensor

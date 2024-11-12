@@ -1,0 +1,11 @@
+Modules that are known to atleast work
+    heaper
+    grid_maker
+    PID.py(still need to fix rpm adjust system)
+    path_solver.py
+modules that do not work
+    movement
+    main
+Untested
+    adurino code
+    testing.py

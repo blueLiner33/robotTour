@@ -35,7 +35,6 @@ class PIDController:
     def update(self, current_rpm):#function you want to use the most
         self.current_rpm = current_rpm
         
-        
         pid_output = self.compute_pid()
         
         return pid_output

@@ -37,11 +37,11 @@ void encoderISR2() {
 }
 
 void setup() {
-  Serial.begin(115200);          // USB serial
-  Serial1.begin(115200);         // Use Serial1 for the BNO08x sensor
-  Serial2.setTX(8);              // Set TX pin for Serial2 (UART1)
-  Serial2.setRX(9);              // Set RX pin for Serial2 (UART1)
-  Serial2.begin(115200);         // Initialize Serial2 for secondary device communication
+  Serial.begin(115200);          
+  Serial1.begin(115200);         
+  Serial2.setTX(8);              
+  Serial2.setRX(9);              
+  Serial2.begin(115200);         
 
   if (!rvc.begin(&Serial1)) {
     Serial.println("Could not find BNO08x!");
@@ -72,7 +72,7 @@ void loop() {
   } else {
     RPM2 = 0; // No new pulses since last reading
   }
-
+//rpm1,rpm2,heading.yaw,x_accel,y_accel,y_accel,z_accel
   Serial2.print(RPM1);
   Serial2.print(",");
   Serial2.println(degreesPerCount * encoderCount1);
@@ -82,7 +82,7 @@ void loop() {
   Serial2.println(degreesPerCount * encoderCount2);
 
   BNO08x_RVC_Data heading;
-  if (rvc.read(&heading)) { // Proceed only if read was successful
+  if (rvc.read(&heading)) { 
     Serial2.print(heading.yaw);
     Serial2.print(",");
     Serial2.print(heading.x_accel);

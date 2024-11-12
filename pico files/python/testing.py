@@ -1,9 +1,34 @@
-from machine import UART, Pin
+import functools
+#module only for debugging other sections of code
 
-# Initialize UART1 on the default pins for Pico (TX=Pin 4, RX=Pin 5)
-uart1 = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
+def debug(func):
+    """Print the function signature and return value"""
+    @functools.wraps(func)
+    def wrapper_debug(*args, **kwargs):
+        args_repr = [repr(a) for a in args]
+        kwargs_repr = [f"{k}={repr(v)}" for k, v in kwargs.items()]
+        signature = ", ".join(args_repr + kwargs_repr)
+        print(f"Calling {func.__name__}({signature})")
+        value = func(*args, **kwargs)
+        print(f"{func.__name__}() returned {repr(value)}")
+        return value
+    return wrapper_debug
 
-while True:
-    if uart1.any():  # Check if there is data in the buffer
-        data = uart1.read()  # Read all available data
-        data.decode('utf-8')  # Decode if it's text data
+def print_matrix(matrix):  # testing function
+    square_size = 3  
+    rows, cols = len(matrix), len(matrix[0])
+    matrix_row = rows // square_size
+    matrix_col = cols // square_size
+
+    for square_row in range(matrix_row):
+        square_cols = [""] * square_size  
+
+        for chunk_col in range(matrix_col):
+            for i in range(square_size):
+                line = " ".join(f"{int(matrix[square_row * square_size + i][chunk_col * square_size + j]):2}"
+                                for j in range(square_size))
+                square_cols[i] += line + "   " 
+        
+        for line in square_cols:
+            print(line)
+        print("\n" + "-" * 30)

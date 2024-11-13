@@ -1,8 +1,7 @@
 import functools
 #module only for debugging other sections of code
 
-def debug(func):
-    """Print the function signature and return value"""
+def debug(func):#returns arguments of function and valeu
     @functools.wraps(func)
     def wrapper_debug(*args, **kwargs):
         args_repr = [repr(a) for a in args]
@@ -14,7 +13,7 @@ def debug(func):
         return value
     return wrapper_debug
 
-def print_matrix(matrix):  # testing function
+def print_matrix(matrix):  #print matrix useful for testing if path solver is working right
     square_size = 3  
     rows, cols = len(matrix), len(matrix[0])
     matrix_row = rows // square_size

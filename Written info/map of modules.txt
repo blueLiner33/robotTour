@@ -1,0 +1,8 @@
+grid_maker|none
+heaper|none
+PID|movement
+main|path_solver and movement and threads
+threads|PID and from main import current_movement
+movement|PID and from main import target_time, commands
+path_solver|heaper and grid_maker
+testing|depends

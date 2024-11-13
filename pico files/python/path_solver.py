@@ -3,14 +3,14 @@ import heaper as heap
 import grid_maker as gm
 
 def dijkstra(grid, start, goal):
-    rows, cols = len(grid), len(grid[0])  # Get dimensions from a list of lists
+    rows, cols = len(grid), len(grid[0])  
     priority_queue = []
     distances = {start: 0}
     previous_nodes = {start: None}
 
     heap.heappush(priority_queue, (0, start))
 
-    directions = [(-3, 0), (3, 0), (0, -3), (0, 3)]  # Moving three points at a time
+    directions = [(-3, 0), (3, 0), (0, -3), (0, 3)] #moves rigth distance
 
     while priority_queue:
         current_distance, current_node = heap.heappop(priority_queue)
@@ -28,12 +28,12 @@ def dijkstra(grid, start, goal):
         for direction in directions:
             neighbor = (current_node[0] + direction[0], current_node[1] + direction[1])
 
-            # Ensure the movement path is clear and within bounds
+            # snsures path is clear
             if (
                 0 <= neighbor[0] < rows and 0 <= neighbor[1] < cols and 
                 grid[neighbor[0]][neighbor[1]] != -1 and
-                grid[(2 * current_node[0] + neighbor[0]) // 3][(2 * current_node[1] + neighbor[1]) // 3] != -1 and  # First midpoint
-                grid[(current_node[0] + 2 * neighbor[0]) // 3][(current_node[1] + 2 * neighbor[1]) // 3] != -1  # Second midpoint
+                grid[(2 * current_node[0] + neighbor[0]) // 3][(2 * current_node[1] + neighbor[1]) // 3] != -1 and  # first midpoint
+                grid[(current_node[0] + 2 * neighbor[0]) // 3][(current_node[1] + 2 * neighbor[1]) // 3] != -1  # second midpoint
             ):
                 distance = current_distance + 1
 

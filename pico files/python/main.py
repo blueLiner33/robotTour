@@ -33,35 +33,40 @@ end_point = (3,3)#row,colums based on
 #setting imputs
 import path_solver as path
 import movement as move
-
+import threads
+import _thread
+import time
 commands = path.give_commands(start_point,end_point,gate_points,last_gate_point,blocks)
 if len(commands) >= 30:
     raise ValueError ('manual solve most likely needed commands greater than 30')
 else:
     pass
-rpm = move.get_movement_speed(target_time,commands)
-move.setting_motors(goal_rpm,rightMotor_current_rpm,leftMotor_current_rpm)#need to fix this here
-#*
-#*
-#need a function that always returns the motors rpm and the posistion of the robot. Just needs to read the data that is already coming in 
-#needs to use the threds feature.
-#*
-#*
+
 #***********************************Main Code********************************************
-def movement_loop():
-    move.forward(0.5,rpm)
-    move.stop()
+#might need to add a delay.
+_thread.start_new_thread(threads.core_one_thread, ())
+while threads.current_movement == None:
+    pass
+else:
     for movement in commands:
-        if movement == 0:
-            move.forward(0.5,rpm)
+        if movement == 0 and threads.complete == False:
+            threads.current_movement = 1
+            move.stop()
+            
         elif movement == 1:
-            move.rigth(rpm)
+            threads.current_movement = 2
+            move.stop()
         elif movement == 2:
-            move.left(rpm)
+            threads.current_movement = 3
+            move.stop()
         elif movement == 3:
-            move.oneeighty(rpm)
+            threads.current_movement = 4
+            move.stop()
         else:
             pass
-        move.stop()
+move.stop()
+time.sleep(100000)
 
-movement_loop()#loop that moves the robot
+#for threading
+#move.lock(to avoid corruption)
+

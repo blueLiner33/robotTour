@@ -1,5 +1,6 @@
 *current term*
-    fix lock function in movement to prevent corruption
+    fix threads+testing+movement
+    only the part dealing with threads most of the idea should be there but need to have mroe idea of what is going on befor you implment it. 
 *short term*
     fix serial communication!
     fix the pid logic and movement module

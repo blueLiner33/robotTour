@@ -1,6 +1,4 @@
-from machine import Pin, PWM
-import _thread
-import time
+from machine import Pin, PWM, UART
 import PID as pid
 
 #**************************tuning variables*********************************************
@@ -43,10 +41,6 @@ class motor:
         self.pwm.freq(20000)
         self.pwm.duty_u16(int(65536 * 0.5))
         
-
-    def update_pos(self):#updates motor pos
-        pass
-        #might have to added something based on the read function
     def spin_forward(self):#motor command for forward
         self.m1.on()
         self.m2.off()
@@ -56,9 +50,14 @@ class motor:
     def stop_power(self):#makes m1 and m2 off
         self.m1.off()
         self.m2.off()
-    def sync(self,target): #makes motor have right pos
-        pass
-'''need to find a function to get current rpms'''
+
+#gets the function to only run once
+def run_once(f):#other calls returns none
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            wrapper.has_run = True
+            return f(*args, **kwargs)
+    wrapper.has_run = False
 
 #finds the speed to get time goal in rotations per minuite
 def get_movement_speed(target,commands):
@@ -82,36 +81,67 @@ def get_movement_speed(target,commands):
     tpr = target-(total_commands*(0.1))/wheel_rotations #tpr = time per rotations|in secounds
     return tpr
 
-
-#setting the motor pins
-#name = motor(motorpin1,motorpin2, speedcontrol)
-RightMotor = motor(1,4,5)
-LeftMotor = motor(6,9,10)
-
-def setting_motors(goal_rpm,rightMotor_current_rpm,leftMotor_current_rpm):#pid function for both motors
-    #kP, Ki, Kd, current_rpm, goal_rpm
-    RightMotor = motor(LeftMotor_m1,LeftMotor_m2,LeftMotor_pwm)
-    LeftMotor = motor(RightMotor_m1,RightMotor_m2,RightMotor_pwm)
-    RightMotor_pid = pid.PIDController(RightMotor_kp,RightMotor_ki,RightMotor_kd,rightMotor_current_rpm,goal_rpm)
-    LeftMotor_pid = pid.PIDController(LeftMotor_kp,LeftMotor_ki,LeftMotor_kd,leftMotor_current_rpm,goal_rpm)
-
-#movement commands
-def forward(distance,rpm):#moves robot forward
-    if distance == 1:
-        pass
-    elif distance == 0.5:
-        pass
+def parsedata():
+    #format
+    #rpm1,rpm2,heading.yaw,x_accel,y_accel,y_accel,z_accel
+    uart1 = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
+    if uart1.any():  
+        data = uart1.read() 
+        data = data.decode('utf-8')  
+        data_list = data.split(",")  
+        data_list = [int(i) for i in data_list]  
     else:
-        raise ValueError ("distance has to 1 or .5")
+        pass
+    return data_list
 
-def rigth(rpm):#turns robot right
-    pass
+from main import target_time, commands
+rpm = get_movement_speed(target_time,commands)
+RightMotor_pid = pid.PIDController(RightMotor_kp,RightMotor_ki,RightMotor_kd,0,rpm)
+LeftMotor_pid = pid.PIDController(LeftMotor_kp,LeftMotor_ki,LeftMotor_kd,0,rpm)
 
-def left(rpm):#turns robot left
-    pass
+#creating motors
+RightMotor = motor(LeftMotor_m1,LeftMotor_m2,LeftMotor_pwm)
+LeftMotor = motor(RightMotor_m1,RightMotor_m2,RightMotor_pwm)
 
-def oneeighty(rpm):#moves robot backward
-    pass
-
+#movement commands 
 def stop():#stops the motors
-    pass
+    RightMotor.stop_power()
+    LeftMotor.stop_power()
+    
+
+@run_once
+def start_forward(data):#move forward starting( has to be half as much)
+    if data == data:#need to fix this part not sure what value or form that data will be coming in as
+        RightMotor.spin_forward()
+        LeftMotor.spin_forward()
+    else:
+        stop()
+
+def forward(data):#moves robot forward
+    if data == data:#need to fix this part not sure what value or form that data will be coming in as
+        RightMotor.spin_forward()
+        LeftMotor.spin_forward()
+    else:
+        stop()
+
+def right(data):#turns robot right
+    if data == data:#need to fix this part not sure what value or form that data will be coming in as
+        RightMotor.spin_backward()
+        LeftMotor.spin_forward()
+    else:
+        stop()
+
+def left(data):#turns robot left
+    if data == data:#need to fix this part not sure what value or form that data will be coming in as
+        RightMotor.spin_forward()
+        LeftMotor.spin_backward()
+    else:
+        stop()
+
+def oneeighty(data):#moves robot backward
+    if data == data:#need to fix this part not sure what value or form that data will be coming in as
+        RightMotor.spin_forward()
+        LeftMotor.spin_backward()
+    else:
+        stop()
+

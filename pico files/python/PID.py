@@ -1,5 +1,4 @@
 #should return value for pwd pin!
-import movement as move
 class PIDController:
     def __init__(self, kP, Ki, Kd, current_rpm, goal_rpm):
         #turn these for each motor

@@ -1,6 +1,6 @@
 from machine import Pin, PWM, UART
 import PID as pid
-
+from main import target_time, commands
 #**************************tuning variables*********************************************
 #kP          # proportional constant
 #Ki          # integral constant
@@ -94,7 +94,6 @@ def parsedata():
         pass
     return data_list
 
-from main import target_time, commands
 rpm = get_movement_speed(target_time,commands)
 RightMotor_pid = pid.PIDController(RightMotor_kp,RightMotor_ki,RightMotor_kd,0,rpm)
 LeftMotor_pid = pid.PIDController(LeftMotor_kp,LeftMotor_ki,LeftMotor_kd,0,rpm)

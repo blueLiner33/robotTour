@@ -3,3 +3,7 @@ main
 movement
     pins for each motor
     pid constants for each motor
+    data pins
+main.cpp
+    pins for data communication 
+    sensor pins

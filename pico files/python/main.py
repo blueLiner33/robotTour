@@ -34,8 +34,6 @@ end_point = (3,3)#row,colums based on
 import path_solver as path
 import movement as move
 import threads
-import _thread
-import time
 commands = path.give_commands(start_point,end_point,gate_points,last_gate_point,blocks)
 if len(commands) >= 30:
     raise ValueError ('manual solve most likely needed commands greater than 30')

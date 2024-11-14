@@ -110,38 +110,37 @@ def stop():#stops the motors
     
 
 @run_once
-def start_forward(data):#move forward starting( has to be half as much)
-    if data == data:#need to fix this part not sure what value or form that data will be coming in as
+def start_forward(data):#move forward starting(has to be half as much)
+    if data == data:#need to fix this part not sure what value or form that data will be coming in as(but will only move so much)
         RightMotor.spin_forward()
         LeftMotor.spin_forward()
     else:
         stop()
 
 def forward(data):#moves robot forward
-    if data == data:#need to fix this part not sure what value or form that data will be coming in as
+    if data == data:#need to fix this part not sure what value or form that data will be coming in as(but will only move so much)
         RightMotor.spin_forward()
         LeftMotor.spin_forward()
     else:
         stop()
 
 def right(data):#turns robot right
-    if data == data:#need to fix this part not sure what value or form that data will be coming in as
+    if data == data:#need to fix this part not sure what value or form that data will be coming in as(but will only move so much)
         RightMotor.spin_backward()
         LeftMotor.spin_forward()
     else:
         stop()
 
 def left(data):#turns robot left
-    if data == data:#need to fix this part not sure what value or form that data will be coming in as
+    if data == data:#need to fix this part not sure what value or form that data will be coming in as(but will only move so much)
         RightMotor.spin_forward()
         LeftMotor.spin_backward()
     else:
         stop()
 
-def oneeighty(data):#moves robot backward
-    if data == data:#need to fix this part not sure what value or form that data will be coming in as
+def oneeighty(data):#moves robot oneequity
+    if data == data:#need to fix this part not sure what value or form that data will be coming in as(but will only move so much)
         RightMotor.spin_forward()
         LeftMotor.spin_backward()
     else:
         stop()
-

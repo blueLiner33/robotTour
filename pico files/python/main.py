@@ -44,29 +44,12 @@ else:
 
 #***********************************Main Code********************************************
 #might need to add a delay.
-_thread.start_new_thread(threads.core_one_thread, ())
-while threads.current_movement == None:
-    pass
-else:
-    for movement in commands:
-        if movement == 0 and threads.complete == False:
-            threads.current_movement = 1
-            move.stop()
-            
-        elif movement == 1:
-            threads.current_movement = 2
-            move.stop()
-        elif movement == 2:
-            threads.current_movement = 3
-            move.stop()
-        elif movement == 3:
-            threads.current_movement = 4
-            move.stop()
-        else:
-            pass
-move.stop()
-time.sleep(100000)
-
-#for threading
-#move.lock(to avoid corruption)
+threads.complete = False
+threads.current_movement = None
+for movement in commands:
+    if threads.complete:
+        move.stop()
+        break
+    threads.current_movement = movement
+    threads.process_command(movement)
 

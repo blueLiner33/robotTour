@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/albersj/OneDrive - Cincinnati Country Day School/Documents/GitHub/robotTour/pico files/adurino files",
-      "program": "c:/Users/albersj/OneDrive - Cincinnati Country Day School/Documents/GitHub/robotTour/pico files/adurino files/build/Debug/outDebug",
+      "cwd": ".",
+      "program": "build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

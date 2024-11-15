@@ -1,7 +1,7 @@
 # Original code by Kevin O'Connor, augmented by Tim Peters and Raymond Hettinger
 # further modified to only have max heap
 
-__all__ = ['heappush', 'heappop', 'heapify', 'heapreplace', 'heappushpop']
+__all__ = ['heappush', 'heappop']
 
 
 def heappush(heap, item):
@@ -19,30 +19,6 @@ def heappop(heap):
         _siftup(heap, 0)
         return returnitem
     return lastelt
-
-
-def heapreplace(heap, item):
-    returnitem = heap[0]    # raises appropriate IndexError if heap is empty
-    heap[0] = item
-    _siftup(heap, 0)
-    return returnitem
-
-
-def heappushpop(heap, item):
-    """Fast version of a heappush followed by a heappop."""
-    if heap and heap[0] < item:
-        item, heap[0] = heap[0], item
-        _siftup(heap, 0)
-    return item
-
-
-def heapify(x):
-    """Transform list into a heap, in-place, in O(len(x)) time."""
-    n = len(x)
-
-    for i in reversed(range(n//2)):
-        _siftup(x, i)
-
 
 def _siftdown(heap, startpos, pos):
     newitem = heap[pos]

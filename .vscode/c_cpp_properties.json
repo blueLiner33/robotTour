@@ -2,17 +2,10 @@
   "configurations": [
     {
       "name": "windows-gcc-x64",
-      "forcedInclude": [
-          "<Wire.h>",
-          "Adafruit_BNO08x_RVC.h",
-          "hardware/clocks.h",
-          "hardware/gpio.h",
-          "<Arduino.h>"
-      ],
       "includePath": [
         "${workspaceFolder}/**"
       ],
-      "compilerPath": "gcc",
+      "compilerPath": "C:/msys64/ucrt64/bin/gcc.exe",
       "cStandard": "${default}",
       "cppStandard": "${default}",
       "intelliSenseMode": "windows-gcc-x64",

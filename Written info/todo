@@ -1,12 +1,13 @@
 *current term*
-    finish movement logic
     do testing
-    implment it. 
+    finish distance moved
+    finish logic based on testing
     make 3d model
     fix serial communication
 *short term*
     fix the pid logic
     order robot motors
+    full robot test.
 *long term*
     make aliegnment tool
     get sensor for robot when it is close

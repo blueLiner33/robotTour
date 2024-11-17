@@ -95,12 +95,17 @@ def parsedata():
     return data_list
 
 rpm = get_movement_speed(target_time,commands)
-RightMotor_pid = pid.PIDController(RightMotor_kp,RightMotor_ki,RightMotor_kd,0,rpm)
-LeftMotor_pid = pid.PIDController(LeftMotor_kp,LeftMotor_ki,LeftMotor_kd,0,rpm)
+RightMotor_pid = pid.PIDController(RightMotor_kp,RightMotor_ki,RightMotor_kd,0,rpm,RightMotor_pwm)
+LeftMotor_pid = pid.PIDController(LeftMotor_kp,LeftMotor_ki,LeftMotor_kd,0,rpm,LeftMotor_pwm)
 
 #creating motors
 RightMotor = motor(LeftMotor_m1,LeftMotor_m2,LeftMotor_pwm)
 LeftMotor = motor(RightMotor_m1,RightMotor_m2,RightMotor_pwm)
+
+#movement travled in cm from accelration
+def distance_moved(data,previous_distance):
+    pass
+
 
 #movement commands 
 def stop():#stops the motors

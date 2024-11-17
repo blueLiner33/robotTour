@@ -1,10 +1,12 @@
 #should return value for pwd pin!
+from machine import PWM
 class PIDController:
-    def __init__(self, kP, Ki, Kd, current_rpm, goal_rpm):
+    def __init__(self, kP, Ki, Kd, current_rpm, goal_rpm,pwm_pin):
         #turn these for each motor
         self.kP = kP          # proportional constant
         self.Ki = Ki          # integral constant
         self.Kd = Kd          # derivative constant
+        self.pwm_pin = pwm_pin 
         self.current_rpm = current_rpm
         self.goal_rpm = goal_rpm
         self.previous_rpm = current_rpm  
@@ -36,5 +38,14 @@ class PIDController:
         self.compute_pid()
     
     def adjust(self):#makes rpm right
-        self.pwm_pin = 50#need to fix this part
+        if self.pid_output < 0:
+            current_pwm = self.pwm_pin.duty_u16() 
+            adjusted_pwm = current_pwm + int(self.pid_output)
+            self.pwm_pin.duty_u16(int(adjusted_pwm))
+        elif self.pid_output>0:
+            current_pwm = self.pwm_pin.duty_u16() 
+            adjusted_pwm = current_pwm - int(self.pid_output)
+            self.pwm_pin.duty_u16(int(adjusted_pwm))
+        else:
+            pass
         

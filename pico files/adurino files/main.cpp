@@ -1,3 +1,4 @@
+//what works right now
 #include <Wire.h>
 #include "Adafruit_BNO08x_RVC.h"
 #include "hardware/clocks.h"
@@ -25,6 +26,10 @@ float degreesPerCount = 360.0 / COUNTS_PER_REV;
 
 // Create rvc object
 Adafruit_BNO08x_RVC rvc = Adafruit_BNO08x_RVC();
+
+unsigned long lastPollTime = 0;  // Time tracking for sensor polling
+unsigned long pollInterval = 200; // Poll every 500ms (adjust as needed)
+unsigned long retryTimeout = 100; // Timeout for retrying RVC read (in ms)
 
 void encoderISR1() {
   encoderCount1++;
@@ -61,38 +66,83 @@ void loop() {
   unsigned long currentTime1 = micros();
   unsigned long currentTime2 = micros();
 
+  // Calculate RPM for motor 1
   if (currentTime1 != lastTime1) {  // Avoid division by zero
     RPM1 = 60000000.0 / (currentTime1 - lastTime1);
   } else {
     RPM1 = 0; // No new pulses since last reading
   }
 
+  // Calculate RPM for motor 2
   if (currentTime2 != lastTime2) {
     RPM2 = 60000000.0 / (currentTime2 - lastTime2);
   } else {
     RPM2 = 0; // No new pulses since last reading
   }
 
-  Serial2.print(RPM1);
-  Serial2.print(",");
-  Serial2.println(degreesPerCount * encoderCount1);
+  // Check if it's time to poll the BNO08x sensor
+  unsigned long currentMillis = millis();
+  if (currentMillis - lastPollTime >= pollInterval) {
+    lastPollTime = currentMillis; // Update last poll time
 
-  Serial2.print(RPM2);
-  Serial2.print(",");
-  Serial2.println(degreesPerCount * encoderCount2);
+    BNO08x_RVC_Data heading;
+    bool success = false;
+    unsigned long startTime = millis();
 
-  BNO08x_RVC_Data heading;
-  if (rvc.read(&heading)) { // Proceed only if read was successful
-    Serial2.print(heading.yaw);
-    Serial2.print(",");
-    Serial2.print(heading.x_accel);
-    Serial2.print(",");
-    Serial2.print(heading.y_accel);
-    Serial2.print(",");
-    Serial2.println(heading.z_accel);
-  } else {
-    Serial2.println("RVC read failed");
+    // Retry loop for BNO08x read
+    while (!success && (millis() - startTime < retryTimeout)) {
+      if (rvc.read(&heading)) {
+        success = true;
+
+        // Print all data in a single line as CSV
+        Serial2.print(RPM1);                  // Motor 1 RPM
+        Serial2.print(",");
+        Serial2.print(degreesPerCount * encoderCount1);  // Motor 1 degrees
+        Serial2.print(",");
+        Serial2.print(RPM2);                  // Motor 2 RPM
+        Serial2.print(",");
+        Serial2.print(degreesPerCount * encoderCount2);  // Motor 2 degrees
+
+        // Print BNO08x sensor data
+        Serial2.print(",");
+        Serial2.print(heading.yaw);          // Yaw
+        Serial2.print(",");
+        Serial2.print(heading.x_accel);      // X acceleration
+        Serial2.print(",");
+        Serial2.print(heading.y_accel);      // Y acceleration
+        Serial2.print(",");
+        Serial2.println(heading.z_accel);    // Z acceleration
+
+        // Print the same data to USB serial (for monitoring)
+        Serial.print(RPM1);                  // Motor 1 RPM
+        Serial.print(",");
+        Serial.print(degreesPerCount * encoderCount1);  // Motor 1 degrees
+        Serial.print(",");
+        Serial.print(RPM2);                  // Motor 2 RPM
+        Serial.print(",");
+        Serial.print(degreesPerCount * encoderCount2);  // Motor 2 degrees
+
+        // Print BNO08x sensor data
+        Serial.print(",");
+        Serial.print(heading.yaw);          // Yaw
+        Serial.print(",");
+        Serial.print(heading.x_accel);      // X acceleration
+        Serial.print(",");
+        Serial.print(heading.y_accel);      // Y acceleration
+        Serial.print(",");
+        Serial.println(heading.z_accel);    // Z acceleration
+      } else {
+        // If failed, give some feedback
+        Serial.println("Retrying BNO08x read...");
+      }
+    }
+
+    if (!success) {
+      Serial.println("RVC read failed after retries.");
+      Serial2.println("RVC read failed after retries.");
+    }
   }
 
-  delay(100);
+  // Delay to avoid overloading the loop
+  delay(100);  // Adjust to slow down loop if necessary
 }

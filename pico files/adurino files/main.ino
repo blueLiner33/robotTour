@@ -1,3 +1,4 @@
+//still need to test
 #include <Wire.h>
 #include "Adafruit_BNO08x_RVC.h"
 #include "hardware/clocks.h"
@@ -26,6 +27,10 @@ float degreesPerCount = 360.0 / COUNTS_PER_REV;
 // Create rvc object
 Adafruit_BNO08x_RVC rvc = Adafruit_BNO08x_RVC();
 
+unsigned long lastPollTime = 0;  // Time tracking for sensor polling
+unsigned long pollInterval = 200; // Poll every 200ms (adjust as needed)
+unsigned long retryTimeout = 100; // Timeout for retrying RVC read (in ms)
+
 void encoderISR1() {
   encoderCount1++;
   lastTime1 = micros(); 
@@ -37,15 +42,11 @@ void encoderISR2() {
 }
 
 void setup() {
-  Serial.begin(115200);          
-  Serial1.begin(115200);         
-  Serial2.setTX(8);              
-  Serial2.setRX(9);              
-  Serial2.begin(115200);         
+  Serial1.begin(115200);         // Use Serial1 for the BNO08x sensor
+  Serial2.begin(115200);         // Initialize Serial2 for secondary device communication
 
   if (!rvc.begin(&Serial1)) {
-    Serial.println("Could not find BNO08x!");
-    while (1) delay(10);
+    while (1) delay(10);  // Wait forever if the sensor can't be initialized
   }
 
   pinMode(ENCODER_A1, INPUT_PULLUP);
@@ -61,38 +62,60 @@ void loop() {
   unsigned long currentTime1 = micros();
   unsigned long currentTime2 = micros();
 
+  // Calculate RPM for motor 1
   if (currentTime1 != lastTime1) {  // Avoid division by zero
     RPM1 = 60000000.0 / (currentTime1 - lastTime1);
   } else {
     RPM1 = 0; // No new pulses since last reading
   }
 
+  // Calculate RPM for motor 2
   if (currentTime2 != lastTime2) {
     RPM2 = 60000000.0 / (currentTime2 - lastTime2);
   } else {
     RPM2 = 0; // No new pulses since last reading
   }
-//rpm1,rpm2,heading.yaw,x_accel,y_accel,y_accel,z_accel
-  Serial2.print(RPM1);
-  Serial2.print(",");
-  Serial2.println(degreesPerCount * encoderCount1);
 
-  Serial2.print(RPM2);
-  Serial2.print(",");
-  Serial2.println(degreesPerCount * encoderCount2);
+  // Check if it's time to poll the BNO08x sensor
+  unsigned long currentMillis = millis();
+  if (currentMillis - lastPollTime >= pollInterval) {
+    lastPollTime = currentMillis; // Update last poll time
 
-  BNO08x_RVC_Data heading;
-  if (rvc.read(&heading)) { 
-    Serial2.print(heading.yaw);
-    Serial2.print(",");
-    Serial2.print(heading.x_accel);
-    Serial2.print(",");
-    Serial2.print(heading.y_accel);
-    Serial2.print(",");
-    Serial2.println(heading.z_accel);
-  } else {
-    Serial2.println("RVC read failed");
+    BNO08x_RVC_Data heading;
+    bool success = false;
+    unsigned long startTime = millis();
+
+    // Retry loop for BNO08x read
+    while (!success && (millis() - startTime < retryTimeout)) {
+      if (rvc.read(&heading)) {
+        success = true;
+
+        // Print all data in a single line as CSV
+        Serial2.print(RPM1);                  // Motor 1 RPM
+        Serial2.print(",");
+        Serial2.print(degreesPerCount * encoderCount1);  // Motor 1 degrees
+        Serial2.print(",");
+        Serial2.print(RPM2);                  // Motor 2 RPM
+        Serial2.print(",");
+        Serial2.print(degreesPerCount * encoderCount2);  // Motor 2 degrees
+
+        // Print BNO08x sensor data
+        Serial2.print(",");
+        Serial2.print(heading.yaw);          // Yaw
+        Serial2.print(",");
+        Serial2.print(heading.x_accel);      // X acceleration
+        Serial2.print(",");
+        Serial2.print(heading.y_accel);      // Y acceleration
+        Serial2.print(",");
+        Serial2.println(heading.z_accel);    // Z acceleration
+      }
+    }
+
+    if (!success) {
+      Serial2.println("RVC read failed after retries.");
+    }
   }
 
-  delay(100);
+  // Delay to avoid overloading the loop
+  delay(100);  // Adjust to slow down loop if necessary
 }

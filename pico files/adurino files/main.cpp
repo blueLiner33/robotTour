@@ -1,6 +1,6 @@
-//what works right now
 #include <Wire.h>
-#include "Adafruit_BNO08x_RVC.h"
+#include <SPI.h>
+#include "Adafruit_BNO08x.h"
 #include "hardware/clocks.h"
 #include "hardware/gpio.h"
 #include <Arduino.h>
@@ -24,35 +24,42 @@ float RPM1 = 0;
 float RPM2 = 0;
 float degreesPerCount = 360.0 / COUNTS_PER_REV;
 
-// Create rvc object
-Adafruit_BNO08x_RVC rvc = Adafruit_BNO08x_RVC();
+// Create BNO08x object for SPI
+Adafruit_BNO08x bno08x = Adafruit_BNO08x();
 
-unsigned long lastPollTime = 0;  // Time tracking for sensor polling
-unsigned long pollInterval = 200; // Poll every 500ms (adjust as needed)
-unsigned long retryTimeout = 100; // Timeout for retrying RVC read (in ms)
+// Define SPI pins
+#define BNO08X_CS 10   // Chip select
+#define BNO08X_INT 9   // Interrupt pin
+#define BNO08X_RST 8   // Reset pin (optional)
+
+// Polling interval and retry rate
+unsigned long lastPollTime = 0;
+unsigned long pollInterval = 100;
+unsigned long retryTimeout = 100;
 
 void encoderISR1() {
   encoderCount1++;
-  lastTime1 = micros(); 
+  lastTime1 = micros();
 }
 
 void encoderISR2() {
   encoderCount2++;
-  lastTime2 = micros(); 
+  lastTime2 = micros();
 }
 
 void setup() {
-  Serial.begin(115200);          // USB serial
-  Serial1.begin(115200);         // Use Serial1 for the BNO08x sensor
-  Serial2.setTX(8);              // Set TX pin for Serial2 (UART1)
-  Serial2.setRX(9);              // Set RX pin for Serial2 (UART1)
-  Serial2.begin(115200);         // Initialize Serial2 for secondary device communication
+  // Initialize Serial1 for output
+  Serial1.begin(115200);
 
-  if (!rvc.begin(&Serial1)) {
-    Serial.println("Could not find BNO08x!");
-    while (1) delay(10);
+  // Initialize SPI for BNO08x
+  if (!bno08x.begin_SPI(BNO08X_CS, BNO08X_RST, BNO08X_INT)) {
+    while (1) {
+      Serial1.println("BNO08x SPI init failed");
+      delay(10);
+    }
   }
 
+  // Initialize motor encoders
   pinMode(ENCODER_A1, INPUT_PULLUP);
   pinMode(ENCODER_B1, INPUT_PULLUP);
   pinMode(ENCODER_A2, INPUT_PULLUP);
@@ -60,6 +67,9 @@ void setup() {
 
   attachInterrupt(digitalPinToInterrupt(ENCODER_A1), encoderISR1, RISING);
   attachInterrupt(digitalPinToInterrupt(ENCODER_A2), encoderISR2, RISING);
+
+  // Confirm successful BNO08x setup
+  Serial1.println("BNO08x initialized with SPI");
 }
 
 void loop() {
@@ -67,82 +77,46 @@ void loop() {
   unsigned long currentTime2 = micros();
 
   // Calculate RPM for motor 1
-  if (currentTime1 != lastTime1) {  // Avoid division by zero
+  if (currentTime1 != lastTime1) {
     RPM1 = 60000000.0 / (currentTime1 - lastTime1);
   } else {
-    RPM1 = 0; // No new pulses since last reading
+    RPM1 = 0;
   }
 
   // Calculate RPM for motor 2
   if (currentTime2 != lastTime2) {
     RPM2 = 60000000.0 / (currentTime2 - lastTime2);
   } else {
-    RPM2 = 0; // No new pulses since last reading
+    RPM2 = 0;
   }
 
-  // Check if it's time to poll the BNO08x sensor
   unsigned long currentMillis = millis();
   if (currentMillis - lastPollTime >= pollInterval) {
-    lastPollTime = currentMillis; // Update last poll time
+    lastPollTime = currentMillis;
 
-    BNO08x_RVC_Data heading;
-    bool success = false;
-    unsigned long startTime = millis();
+    // Read BNO08x data
+    Adafruit_BNO08x::AccelerometerReport accelReport;
+    if (bno08x.getAccelReport(&accelReport)) {
+      // Print data
+      Serial1.print(RPM1); // Motor 1 RPM
+      Serial1.print(",");
+      Serial1.print(degreesPerCount * encoderCount1); // Motor 1 degrees
+      Serial1.print(",");
+      Serial1.print(RPM2); // Motor 2 RPM
+      Serial1.print(",");
+      Serial1.print(degreesPerCount * encoderCount2); // Motor 2 degrees
 
-    // Retry loop for BNO08x read
-    while (!success && (millis() - startTime < retryTimeout)) {
-      if (rvc.read(&heading)) {
-        success = true;
-
-        // Print all data in a single line as CSV
-        Serial2.print(RPM1);                  // Motor 1 RPM
-        Serial2.print(",");
-        Serial2.print(degreesPerCount * encoderCount1);  // Motor 1 degrees
-        Serial2.print(",");
-        Serial2.print(RPM2);                  // Motor 2 RPM
-        Serial2.print(",");
-        Serial2.print(degreesPerCount * encoderCount2);  // Motor 2 degrees
-
-        // Print BNO08x sensor data
-        Serial2.print(",");
-        Serial2.print(heading.yaw);          // Yaw
-        Serial2.print(",");
-        Serial2.print(heading.x_accel);      // X acceleration
-        Serial2.print(",");
-        Serial2.print(heading.y_accel);      // Y acceleration
-        Serial2.print(",");
-        Serial2.println(heading.z_accel);    // Z acceleration
-
-        // Print the same data to USB serial (for monitoring)
-        Serial.print(RPM1);                  // Motor 1 RPM
-        Serial.print(",");
-        Serial.print(degreesPerCount * encoderCount1);  // Motor 1 degrees
-        Serial.print(",");
-        Serial.print(RPM2);                  // Motor 2 RPM
-        Serial.print(",");
-        Serial.print(degreesPerCount * encoderCount2);  // Motor 2 degrees
-
-        // Print BNO08x sensor data
-        Serial.print(",");
-        Serial.print(heading.yaw);          // Yaw
-        Serial.print(",");
-        Serial.print(heading.x_accel);      // X acceleration
-        Serial.print(",");
-        Serial.print(heading.y_accel);      // Y acceleration
-        Serial.print(",");
-        Serial.println(heading.z_accel);    // Z acceleration
-      } else {
-        // If failed, give some feedback
-        Serial.println("Retrying BNO08x read...");
-      }
-    }
-
-    if (!success) {
-      Serial.println("RVC read failed after retries.");
-      Serial2.println("RVC read failed after retries.");
+      // Print BNO08x data
+      Serial1.print(",");
+      Serial1.print(accelReport.x); // X acceleration
+      Serial1.print(",");
+      Serial1.print(accelReport.y); // Y acceleration
+      Serial1.print(",");
+      Serial1.println(accelReport.z); // Z acceleration
+    } else {
+      Serial1.println("BNO08x read failed");
     }
   }
 
-  // Delay to avoid overloading the loop
-  delay(100);  // Adjust to slow down loop if necessary
+  delay(100);
 }

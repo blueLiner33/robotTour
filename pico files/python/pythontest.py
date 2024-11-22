@@ -12,4 +12,4 @@ while True:
         data_list = data.split(",")  
         
         data_list = [int(i) for i in data_list]  
-        print(data_list)
+        print(data_list) 

@@ -1,5 +1,5 @@
 #include <Wire.h>
-#include "Adafruit_BNO08x_RVC.h"
+#include "Adafruit_BNO08x.h"
 #include "hardware/clocks.h"
 #include "hardware/gpio.h"
 #include <Arduino.h>

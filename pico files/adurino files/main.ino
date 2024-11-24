@@ -1,122 +1,75 @@
-#include <Wire.h>
-#include <SPI.h>
-#include "Adafruit_BNO08x.h"
-#include "hardware/clocks.h"
-#include "hardware/gpio.h"
-#include <Arduino.h>
+from machine import Pin, Timer
+import time
 
-// Motor encoders
-#define ENCODER_A1 12
-#define ENCODER_B1 11
-#define ENCODER_A2 6
-#define ENCODER_B2 7
+# Constants
+PULSES_PER_REV = 240 
+DEGREES_PER_COUNT = 360.0 / PULSES_PER_REV  
 
-volatile long encoderCount1 = 0;
-volatile long encoderCount2 = 0;
-volatile unsigned long lastTime1 = 0;
-volatile unsigned long lastTime2 = 0;
+# Pins for encoders
+ENCODER_A1 = 12  # Motor 1 encoder A pin
+ENCODER_B1 = 11  # Motor 1 encoder B pin
+ENCODER_A2 = 6   # Motor 2 encoder A pin
+ENCODER_B2 = 7   # Motor 2 encoder B pin
 
-#define GEAR_RATIO (244904.0 / 12000.0)
-#define CPR 14
-#define COUNTS_PER_REV (CPR * GEAR_RATIO)
+# Globals to track encoder counts and last timestamps
+encoder_count1 = 0
+encoder_count2 = 0
+last_time1 = 0
+last_time2 = 0
+rpm1 = 0
+rpm2 = 0
+degrees_one = 0
+degrees_two = 0
 
-float RPM1 = 0;
-float RPM2 = 0;
-float degreesPerCount = 360.0 / COUNTS_PER_REV;
+# Interrupt service routines for encoders
+def encoder_isr1(pin):
+    global encoder_count1, last_time1
+    encoder_count1 += 1
+    last_time1 = time.ticks_us()
 
-// Create BNO08x object for SPI
-Adafruit_BNO08x bno08x = Adafruit_BNO08x();
+def encoder_isr2(pin):
+    global encoder_count2, last_time2
+    encoder_count2 += 1
+    last_time2 = time.ticks_us()
 
-// Define SPI pins
-#define BNO08X_CS 10   // Chip select
-#define BNO08X_INT 9   // Interrupt pin
-#define BNO08X_RST 8   // Reset pin (optional)
+# Calculate RPM and degrees
+def calculate_metrics():
+    global rpm1, rpm2, degrees_one, degrees_two, last_time1, last_time2
 
-// Polling interval and retry rate
-unsigned long lastPollTime = 0;
-unsigned long pollInterval = 100;
-unsigned long retryTimeout = 100;
+    current_time1 = time.ticks_us()
+    current_time2 = time.ticks_us()
 
-void encoderISR1() {
-  encoderCount1++;
-  lastTime1 = micros();
-}
+    # Calculate RPM for motor 1
+    if encoder_count1 > 0 and current_time1 != last_time1:
+        time_diff1 = time.ticks_diff(current_time1, last_time1)
+        rpm1 = (60_000_000.0 / (time_diff1 * PULSES_PER_REV)) if time_diff1 > 0 else 0
+    else:
+        rpm1 = 0
 
-void encoderISR2() {
-  encoderCount2++;
-  lastTime2 = micros();
-}
+    # Calculate RPM for motor 2
+    if encoder_count2 > 0 and current_time2 != last_time2:
+        time_diff2 = time.ticks_diff(current_time2, last_time2)
+        rpm2 = (60_000_000.0 / (time_diff2 * PULSES_PER_REV)) if time_diff2 > 0 else 0
+    else:
+        rpm2 = 0
 
-void setup() {
-  // Initialize Serial1 for output
-  Serial1.begin(115200);
+    # Calculate degrees and wrap around 360
+    degrees_one = (encoder_count1 * DEGREES_PER_COUNT) % 360 - 6
+    degrees_two = (encoder_count2 * DEGREES_PER_COUNT) % 360 - 6 
 
-  // Initialize SPI for BNO08x
-  if (!bno08x.begin_SPI(BNO08X_CS, BNO08X_RST, BNO08X_INT)) {
-    while (1) {
-      Serial1.println("BNO08x SPI init failed");
-      delay(10);
-    }
-  }
+# Setup pins and interrupts
+encoder_pin_a1 = Pin(ENCODER_A1, Pin.IN, Pin.PULL_UP)
+encoder_pin_b1 = Pin(ENCODER_B1, Pin.IN, Pin.PULL_UP)
+encoder_pin_a2 = Pin(ENCODER_A2, Pin.IN, Pin.PULL_UP)
+encoder_pin_b2 = Pin(ENCODER_B2, Pin.IN, Pin.PULL_UP)
 
-  // Initialize motor encoders
-  pinMode(ENCODER_A1, INPUT_PULLUP);
-  pinMode(ENCODER_B1, INPUT_PULLUP);
-  pinMode(ENCODER_A2, INPUT_PULLUP);
-  pinMode(ENCODER_B2, INPUT_PULLUP);
+encoder_pin_a1.irq(trigger=Pin.IRQ_RISING, handler=encoder_isr1)
+encoder_pin_a2.irq(trigger=Pin.IRQ_RISING, handler=encoder_isr2)
 
-  attachInterrupt(digitalPinToInterrupt(ENCODER_A1), encoderISR1, RISING);
-  attachInterrupt(digitalPinToInterrupt(ENCODER_A2), encoderISR2, RISING);
+# Main loop
+while True:
+    calculate_metrics()
+    print(f"Motor 1 - RPM: {rpm1:.2f}, Degrees: {encoder_count1:.2f}")
+    print(f"Motor 2 - RPM: {rpm2:.2f}, Degrees: {degrees_two:.2f}")
+    time.sleep(0.2)  # Adjust the delay for desired refresh rate
 
-  // Confirm successful BNO08x setup
-  Serial1.println("BNO08x initialized with SPI");
-}
-
-void loop() {
-  unsigned long currentTime1 = micros();
-  unsigned long currentTime2 = micros();
-
-  // Calculate RPM for motor 1
-  if (currentTime1 != lastTime1) {
-    RPM1 = 60000000.0 / (currentTime1 - lastTime1);
-  } else {
-    RPM1 = 0;
-  }
-
-  // Calculate RPM for motor 2
-  if (currentTime2 != lastTime2) {
-    RPM2 = 60000000.0 / (currentTime2 - lastTime2);
-  } else {
-    RPM2 = 0;
-  }
-
-  unsigned long currentMillis = millis();
-  if (currentMillis - lastPollTime >= pollInterval) {
-    lastPollTime = currentMillis;
-
-    // Read BNO08x data
-    Adafruit_BNO08x::AccelerometerReport accelReport;
-    if (bno08x.getAccelReport(&accelReport)) {
-      // Print data
-      Serial1.print(RPM1); // Motor 1 RPM
-      Serial1.print(",");
-      Serial1.print(degreesPerCount * encoderCount1); // Motor 1 degrees
-      Serial1.print(",");
-      Serial1.print(RPM2); // Motor 2 RPM
-      Serial1.print(",");
-      Serial1.print(degreesPerCount * encoderCount2); // Motor 2 degrees
-
-      // Print BNO08x data
-      Serial1.print(",");
-      Serial1.print(accelReport.x); // X acceleration
-      Serial1.print(",");
-      Serial1.print(accelReport.y); // Y acceleration
-      Serial1.print(",");
-      Serial1.println(accelReport.z); // Z acceleration
-    } else {
-      Serial1.println("BNO08x read failed");
-    }
-  }
-
-  delay(100);
-}

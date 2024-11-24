@@ -57,38 +57,18 @@ class BNO08x_RVC:
         * X-Axis Acceleration
         * Y-Axis Acceleration
         * Z-Axis Acceleration
+
         """
+        # try to read initial packet start byte
+        data = None
         start_time = time.monotonic()
         while time.monotonic() - start_time < self._read_timeout:
             data = self._uart.read(2)
-            if data is None or len(data) < 2:  # Ensure data is valid
-                continue
+            # print("data", data)
             if data[0] == 0xAA and data[1] == 0xAA:
                 msg = self._uart.read(17)
-                if msg is None or len(msg) < 17:  # Ensure full frame is read
-                    continue
                 heading = self._parse_frame(msg)
                 if heading is None:
                     continue
                 return heading
         raise RVCReadTimeoutError("Unable to read RVC heading message")
-
-
-# Initialize UART
-tx_pin = Pin(0)  # Replace with actual TX pin
-rx_pin = Pin(1)  # Replace with actual RX pin
-uart = UART(1, baudrate=115200, tx=tx_pin, rx=rx_pin, timeout=1000)
-
-# Pass UART to BNO08x_RVC instance
-rvc = BNO08x_RVC(uart)
-
-# Main loop
-while True:
-    try:
-        yaw, pitch, roll, x_accel, y_accel, z_accel = rvc.heading
-        print("Yaw: %2.2f Pitch: %2.2f Roll: %2.2f Degrees" % (yaw, pitch, roll))
-        print("Acceleration X: %2.2f Y: %2.2f Z: %2.2f m/s^2" % (x_accel, y_accel, z_accel))
-        print("")
-    except RVCReadTimeoutError as e:
-        print("Timeout reading RVC heading:", e)
-    time.sleep(0.1)

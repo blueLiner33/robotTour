@@ -1,1 +1,1 @@
-Runs a robot that navigates a maze for science olympaid.
+Runs a robot that navigates a maze for Science Olympaid.

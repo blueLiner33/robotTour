@@ -1,8 +1,8 @@
-2 Pi pcio
+Pi pico 2
 Adafruit BNO08x
-sp2 optical mouse not decided yet but not be able to get it to work
+sp2 optical mouse(not decided yet, but trying to get it to work)
 6 aa batterys
 1 large breadboard
-1 small breadboard
-close ir sensors
-buck converter(might not be needed)
+1 large breadboard rail
+close ir sensors(still decideding)
+buck converter(get voltage down to power pico)

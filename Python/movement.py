@@ -1,6 +1,6 @@
 from machine import Pin, PWM, UART
 import PID as pid
-from main import target_time, commands
+from Python.main import target_time, commands
 #**************************tuning variables*********************************************
 #kP          # proportional constant
 #Ki          # integral constant
@@ -80,19 +80,6 @@ def get_movement_speed(target,commands):
     wheel_rotations+=first_move
     tpr = target-(total_commands*(0.1))/wheel_rotations #tpr = time per rotations|in secounds
     return tpr
-
-def parsedata():
-    #format
-    #rpm1,rpm2,heading.yaw,x_accel,y_accel,y_accel,z_accel
-    uart1 = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
-    if uart1.any():  
-        data = uart1.read() 
-        data = data.decode('utf-8')  
-        data_list = data.split(",")  
-        data_list = [int(i) for i in data_list]  
-    else:
-        pass
-    return data_list
 
 rpm = get_movement_speed(target_time,commands)
 RightMotor_pid = pid.PIDController(RightMotor_kp,RightMotor_ki,RightMotor_kd,0,rpm,RightMotor_pwm)

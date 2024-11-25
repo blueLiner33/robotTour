@@ -1,6 +1,7 @@
 import movement as move
 import _thread
 import time
+import read_sensors as resen
 # Shared data and flags
 data_list = []
 lock = _thread.allocate_lock()
@@ -10,13 +11,13 @@ def core_one_thread():#runs on second core to always update other systems
     global lock, data_list
     while not complete:
         with lock:
-            data_list = move.parsedata()
+            data_list = resen.get_data()
             if data_list:
                 move.RightMotor_pid.update(data_list)#needs to be fixed
                 move.LeftMotor_pid.update(data_list)#needs to be fixed
                 move.RightMotor_pid.adjust()
                 move.LeftMotor_pid.adjust()
-                time.sleep(0.5)#ajust delay as needed need for stablity I think
+                time.sleep(0.5)#adjust
 
 def process_command(movement):#main loop used for movement
     global current_movement, complete
@@ -31,5 +32,5 @@ def process_command(movement):#main loop used for movement
             move.left(data_list)
         elif movement == 4:
             move.oneeighty(data_list)
-        time.sleep(0.5)#adjust as needed
+        time.sleep(0.1)#adjust
     move.stop()

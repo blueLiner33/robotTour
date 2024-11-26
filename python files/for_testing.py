@@ -31,3 +31,11 @@ def print_matrix(matrix):  #print matrix useful for testing if path solver is wo
         for line in square_cols:
             print(line)
         print("\n" + "-" * 30)
+
+#gets the function to only run once
+def run_once(f):#other calls returns none
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            wrapper.has_run = True
+            return f(*args, **kwargs)
+    wrapper.has_run = False

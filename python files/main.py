@@ -50,4 +50,3 @@ for movement in commands:
         break
     threads.current_movement = movement
     threads.process_command(movement)
-

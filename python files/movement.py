@@ -51,14 +51,6 @@ class motor:
         self.m1.off()
         self.m2.off()
 
-#gets the function to only run once
-def run_once(f):#other calls returns none
-    def wrapper(*args, **kwargs):
-        if not wrapper.has_run:
-            wrapper.has_run = True
-            return f(*args, **kwargs)
-    wrapper.has_run = False
-
 #finds the speed to get time goal in rotations per minuite
 def get_movement_speed(target,commands):
     total_commands = len(commands)
@@ -89,48 +81,63 @@ LeftMotor_pid = pid.PIDController(LeftMotor_kp,LeftMotor_ki,LeftMotor_kd,0,rpm,L
 RightMotor = motor(LeftMotor_m1,LeftMotor_m2,LeftMotor_pwm)
 LeftMotor = motor(RightMotor_m1,RightMotor_m2,RightMotor_pwm)
 
-#movement travled in cm from accelration
-def distance_moved(data,previous_distance):
-    pass
+
+distance_traveled = 0  # Distance traveled in cm
+velocity = 0  # Velocity in cm/s
 
 
+def distance_moved(acceleration):#updates distance
+    """
+    fix time_interval which is update rate
+    """
+    time_interval = 0.1
+    global distance_traveled, velocity
+    
+    acceleration_cm = acceleration * 100
+    velocity += acceleration_cm * time_interval  # v = v + a * dt
+    distance_increment = velocity * time_interval  # s = s + v * dt
+    distance_traveled += distance_increment
+    
 #movement commands 
 def stop():#stops the motors
     RightMotor.stop_power()
     LeftMotor.stop_power()
     
 
-@run_once
 def start_forward(data):#move forward starting(has to be half as much)
-    if data == data:#need to fix this part not sure what value or form that data will be coming in as(but will only move so much)
+    global distance_traveled
+    if data <= 25:
         RightMotor.spin_forward()
         LeftMotor.spin_forward()
     else:
         stop()
+        distance_traveled = 0
 
 def forward(data):#moves robot forward
-    if data == data:#need to fix this part not sure what value or form that data will be coming in as(but will only move so much)
+    global distance_traveled
+    if data <= 50:
         RightMotor.spin_forward()
         LeftMotor.spin_forward()
     else:
         stop()
+        distance_traveled = 0
 
 def right(data):#turns robot right
-    if data == data:#need to fix this part not sure what value or form that data will be coming in as(but will only move so much)
+    if data <= 90:
         RightMotor.spin_backward()
         LeftMotor.spin_forward()
     else:
         stop()
 
 def left(data):#turns robot left
-    if data == data:#need to fix this part not sure what value or form that data will be coming in as(but will only move so much)
+    if data <= -90:
         RightMotor.spin_forward()
         LeftMotor.spin_backward()
     else:
         stop()
 
-def oneeighty(data):#moves robot oneequity
-    if data == data:#need to fix this part not sure what value or form that data will be coming in as(but will only move so much)
+def oneeighty(data):#moves robot oneeighty
+    if data <= -180:
         RightMotor.spin_forward()
         LeftMotor.spin_backward()
     else:

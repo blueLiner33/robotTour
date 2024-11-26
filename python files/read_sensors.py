@@ -141,8 +141,16 @@ rvc = BNO08x_RVC(uart0)
 
 def get_data():
     try:
+        average_data = []
         calculate_metrics()
         yaw, x_accel, y_accel, z_accel = rvc.heading
-        return (rpm1,degrees_one,rpm2,degrees_two,yaw,x_accel,y_accel,z_accel)
+        average_data.append ([rpm1,degrees_one,rpm2,degrees_two,yaw,x_accel,y_accel,z_accel])
+        if len(average_data) > 5:  # returns average of 5 values
+            column_average = [sum(sub_list) / len(sub_list) for sub_list in zip(*average_data)]
+            rounded_average = [round(elem, 2) for elem in column_average]
+            average_data.pop(0)
+            return(rounded_average)
+        else:
+            pass
     except RVCReadTimeoutError as e:
         raise e

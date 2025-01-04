@@ -1,8 +1,7 @@
-#should return value for pwd pin!
-from machine import PWM
+from machine import PWM, Pin
+
 class PIDController:
-    def __init__(self, kP, Ki, Kd, current_rpm, goal_rpm,pwm_pin):
-        #turn these for each motor
+    def __init__(self, kP, Ki, Kd, current_rpm, goal_rpm, pwm_pin):
         self.kP = kP          # proportional constant
         self.Ki = Ki          # integral constant
         self.Kd = Kd          # derivative constant
@@ -33,18 +32,19 @@ class PIDController:
         
         self.pid_output = Pout + Iout + Dout
 
-    def update(self, current_rpm):#function you want to use the most have to call to update self.pid_output
+    def update(self, current_rpm):
         self.current_rpm = current_rpm
         self.compute_pid()
     
-    def adjust(self):#makes rpm right
+    def adjust(self):
         if self.pid_output < 0:
-            current_pwm = self.pwm_pin.duty_u16() 
-            adjusted_pwm = current_pwm + int(self.pid_output)
-            self.pwm_pin.duty_u16(int(adjusted_pwm))
-        elif self.pid_output>0:
-            current_pwm = self.pwm_pin.duty_u16() 
-            adjusted_pwm = current_pwm - int(self.pid_output)
-            self.pwm_pin.duty_u16(int(adjusted_pwm))
+            current_pwm = int(self.pwm_pin.duty_u16()) 
+            adjusted_pwm = current_pwm - abs(int(self.pid_output))
+        elif self.pid_output > 0:
+            current_pwm = int(self.pwm_pin.duty_u16()) 
+            adjusted_pwm = current_pwm + abs(int(self.pid_output))
         else:
-            pass    
+            return
+        #stays in values
+        adjusted_pwm = max(0, min(adjusted_pwm, 65535))
+        self.pwm_pin.duty_u16(adjusted_pwm)

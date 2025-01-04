@@ -1,6 +1,5 @@
 from machine import Pin, PWM, UART
 import PID as pid
-from main import target_time, commands
 #**************************tuning variables*********************************************
 #kP          # proportional constant
 #Ki          # integral constant
@@ -73,13 +72,14 @@ def get_movement_speed(target,commands):
     tpr = target-(total_commands*(0.1))/wheel_rotations #tpr = time per rotations|in secounds
     return tpr
 
-rpm = get_movement_speed(target_time,commands)
-RightMotor_pid = pid.PIDController(RightMotor_kp, RightMotor_ki, RightMotor_kd, 0, rpm, RightMotor.pwm)
-LeftMotor_pid = pid.PIDController(LeftMotor_kp, LeftMotor_ki, LeftMotor_kd, 0, rpm, LeftMotor.pwm)
-
+rpm = 20
 #creating motors
 RightMotor = motor(RightMotor_m1, RightMotor_m2, RightMotor_pwm)
 LeftMotor = motor(LeftMotor_m1, LeftMotor_m2, LeftMotor_pwm)
+
+RightMotor_pid = pid.PIDController(RightMotor_kp, RightMotor_ki, RightMotor_kd, 0, rpm, RightMotor.pwm)
+LeftMotor_pid = pid.PIDController(LeftMotor_kp, LeftMotor_ki, LeftMotor_kd, 0, rpm, LeftMotor.pwm)
+
 
 
 
@@ -127,15 +127,19 @@ def right(data):#turns robot right
     if data <= 90:
         RightMotor.spin_backward()
         LeftMotor.spin_forward()
+        return False
     else:
         stop()
+        return True
 
 def left(data):#turns robot left
     if data <= -90:
         RightMotor.spin_forward()
         LeftMotor.spin_backward()
+        return False
     else:
         stop()
+        return True
 
 def oneeighty(data):#moves robot oneeighty
     if data <= -180:

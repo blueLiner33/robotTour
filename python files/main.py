@@ -42,6 +42,7 @@ else:
 
 #***********************************Main Code********************************************
 #might need to add a delay.
+commands = [2,0,3]
 threads.complete = False
 threads.current_movement = None
 for movement in commands:

@@ -42,12 +42,5 @@ else:
 
 #***********************************Main Code********************************************
 #might need to add a delay.
-commands = [2,0,3]
-threads.complete = False
-threads.current_movement = None
-for movement in commands:
-    if threads.complete:
-        move.stop()
-        break
-    threads.current_movement = movement
-    threads.process_command(movement)
+commands = [2, 3, 3]
+threads.start_main_loop(commands)

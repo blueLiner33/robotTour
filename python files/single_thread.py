@@ -41,7 +41,6 @@ async def main_loop(commands):
             movement = commands[command_index]
             current_movement = movement
             print(f"Processing command {movement}, index {command_index}")
-            print(data_list[4]-turns)
             if not start_forward_executed:
                 move.start_forward(sensor_data[5])
                 start_forward_executed = True
@@ -52,21 +51,21 @@ async def main_loop(commands):
                 move.distance_moved(sensor_data[5])
                 move.forward(sensor_data[5])
             elif movement == 2:  # Right
-                if move.right(sensor_data[4] - turns):
+                if move.right(sensor_data[4] - (turns*90)):
                     command_index += 1
-                    turns += 90
+                    turns += 1
             elif movement == 3:  # Left
-                if move.left(sensor_data[4] - turns):
+                if move.left(sensor_data[4] - (turns*90)):
                     command_index += 1
-                    turns -= 90
+                    turns -= 1
             elif movement == 4:  # 180-degree turn
-                if move.oneeighty(sensor_data[4] - turns):
+                if move.oneeighty(sensor_data[4] - (turns*90)):
                     command_index += 1
-                    turns -= 180
+                    turns -= 2
             else:
                 command_index += 1
         else:
-           
+            
             complete = True
             print("commands done")
             move.stop()
@@ -91,4 +90,5 @@ def start_main_loop(commands):
         print(f"Error: {e}")
     finally:
         complete = True
+
 

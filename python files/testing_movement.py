@@ -87,11 +87,7 @@ distance_traveled = 0  # Distance traveled in cm
 velocity = 0  # Velocity in cm/s
 
 
-def distance_moved(acceleration):#updates distance
-    """
-    fix time_interval which is update rate
-    """
-    time_interval = 0.01
+def distance_moved(acceleration,time_interval):#updates distance
     global distance_traveled, velocity
     if acceleration>=0:
         acceleration_cm = acceleration * 100

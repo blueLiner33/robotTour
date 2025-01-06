@@ -2,8 +2,8 @@ import time
 from struct import unpack_from
 from machine import UART, Pin, Timer
 #tracking update rate
-last_y_update_time = None  #
-y_update_rate = None       
+#last_y_update_time = None  #
+#y_update_rate = None       
 #********************************encoders*************************************************
 #depended on encoders/motors
 PULSES_PER_REV = 240 
@@ -136,10 +136,10 @@ def get_data():
         calculate_metrics()
         yaw, pitch, roll, x_accel, y_accel, z_accel = rvc.heading
         
-        current_time = time.ticks_ms()  
-        if last_y_update_time != 0:
-            y_update_rate = time.ticks_diff(current_time, last_y_update_time)
-        last_y_update_time = current_time
+        #current_time = time.ticks_ms()  
+        #if last_y_update_time != 0:
+            #y_update_rate = time.ticks_diff(current_time, last_y_update_time)
+        #last_y_update_time = current_time
         
         average_data.append ([rpm1,degrees_one,rpm2,degrees_two,yaw,x_accel,y_accel,z_accel])
         if len(average_data) > 2:  # returns average might need to add filter here
@@ -152,5 +152,5 @@ def get_data():
     except RVCReadTimeoutError as e:
         print("Timeout reading RVC heading:", e)
     time.sleep(0.1)
-def get_update_time():
-    return y_update_rate/1000
+#def get_update_time():
+    #return y_update_rate/1000

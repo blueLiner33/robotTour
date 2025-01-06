@@ -87,8 +87,9 @@ distance_traveled = 0  # Distance traveled in cm
 velocity = 0  # Velocity in cm/s
 
 
-def distance_moved(acceleration,time_interval):#updates distance
+def distance_moved(acceleration):#updates distance
     global distance_traveled, velocity
+    time_interval = 0.011
     if acceleration>=0:
         acceleration_cm = acceleration * 100
         velocity += acceleration_cm * time_interval  # v = v + a * dt
@@ -116,7 +117,6 @@ def start_forward(data):#move forward starting(has to be half as much)
     else:
         stop()
         return True
-        distance_traveled = 0
 
 def forward(data):#moves robot forward
     global distance_traveled
@@ -127,7 +127,6 @@ def forward(data):#moves robot forward
     else:
         stop()
         return True
-        distance_traveled = 0
 
 def right(data):#turns robot right
     if data <= 90:

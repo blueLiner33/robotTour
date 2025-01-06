@@ -50,7 +50,7 @@ class motor:
         self.m1.off()
         self.m2.off()
 
-#finds the speed to get time goal in rotations per minuite
+'''#finds the speed to get time goal in rotations per minuite
 def get_movement_speed(target,commands):
     total_commands = len(commands)
     #assumes 50cm boxes
@@ -62,16 +62,16 @@ def get_movement_speed(target,commands):
     turn_movement = width/(4*wheel_radius)
     
     for command in commands:
-        if command == 0 or 3:
+        if command == 0 or command == 3:
             wheel_rotations+=forward_movement
-        if command == 1 or 2:
+        if command == 1 or command == 2:
             wheel_rotations+=turn_movement
         else:
             pass
     wheel_rotations+=first_move
     tpr = target-(total_commands*(0.1))/wheel_rotations #tpr = time per rotations|in secounds
     return tpr
-
+#later this should be from the get movement speed function'''
 rpm = 20
 #creating motors
 RightMotor = motor(RightMotor_m1, RightMotor_m2, RightMotor_pwm)
@@ -91,14 +91,20 @@ def distance_moved(acceleration):#updates distance
     """
     fix time_interval which is update rate
     """
-    time_interval = 0.1
+    time_interval = 0.01
     global distance_traveled, velocity
+    if acceleration>=0:
+        acceleration_cm = acceleration * 100
+        velocity += acceleration_cm * time_interval  # v = v + a * dt
+        distance_increment = velocity * time_interval  # s = s + v * dt
+        distance_traveled += distance_increment
+        #return distance_traveled
+    else:
+        pass
     
-    acceleration_cm = acceleration * 100
-    velocity += acceleration_cm * time_interval  # v = v + a * dt
-    distance_increment = velocity * time_interval  # s = s + v * dt
-    distance_traveled += distance_increment
-    
+def get_distance_traveled():# for testing
+    return distance_traveled
+
 #movement commands 
 def stop():#stops the motors
     RightMotor.stop_power()
@@ -110,8 +116,10 @@ def start_forward(data):#move forward starting(has to be half as much)
     if data <= 25:
         RightMotor.spin_forward()
         LeftMotor.spin_forward()
+        return False
     else:
         stop()
+        return True
         distance_traveled = 0
 
 def forward(data):#moves robot forward
@@ -119,8 +127,10 @@ def forward(data):#moves robot forward
     if data <= 50:
         RightMotor.spin_forward()
         LeftMotor.spin_forward()
+        return False
     else:
         stop()
+        return True
         distance_traveled = 0
 
 def right(data):#turns robot right
@@ -133,7 +143,7 @@ def right(data):#turns robot right
         return True
 
 def left(data):#turns robot left
-    if data <= -90:
+    if abs(data) <= 90:
         RightMotor.spin_forward()
         LeftMotor.spin_backward()
         return False
@@ -142,7 +152,7 @@ def left(data):#turns robot left
         return True
 
 def oneeighty(data):#moves robot oneeighty
-    if data <= -180:
+    if abs(data) <= -180:
         RightMotor.spin_forward()
         LeftMotor.spin_backward()
     else:

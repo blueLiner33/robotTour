@@ -1,5 +1,6 @@
 from machine import Pin, PWM, UART
 import PID as pid
+from main import target_time, commands
 #**************************tuning variables*********************************************
 #kP          # proportional constant
 #Ki          # integral constant
@@ -50,7 +51,7 @@ class motor:
         self.m1.off()
         self.m2.off()
 
-'''#finds the speed to get time goal in rotations per minuite
+#finds the speed to get time goal in rotations per minuite
 def get_movement_speed(target,commands):
     total_commands = len(commands)
     #assumes 50cm boxes
@@ -62,24 +63,23 @@ def get_movement_speed(target,commands):
     turn_movement = width/(4*wheel_radius)
     
     for command in commands:
-        if command == 0 or command == 3:
+        if command == 0 or 3:
             wheel_rotations+=forward_movement
-        if command == 1 or command == 2:
+        if command == 1 or 2:
             wheel_rotations+=turn_movement
         else:
             pass
     wheel_rotations+=first_move
     tpr = target-(total_commands*(0.1))/wheel_rotations #tpr = time per rotations|in secounds
     return tpr
-#later this should be from the get movement speed function'''
-rpm = 20
-#creating motors
-RightMotor = motor(RightMotor_m1, RightMotor_m2, RightMotor_pwm)
-LeftMotor = motor(LeftMotor_m1, LeftMotor_m2, LeftMotor_pwm)
 
+rpm = get_movement_speed(target_time,commands)
 RightMotor_pid = pid.PIDController(RightMotor_kp, RightMotor_ki, RightMotor_kd, 0, rpm, RightMotor.pwm)
 LeftMotor_pid = pid.PIDController(LeftMotor_kp, LeftMotor_ki, LeftMotor_kd, 0, rpm, LeftMotor.pwm)
 
+#creating motors
+RightMotor = motor(RightMotor_m1, RightMotor_m2, RightMotor_pwm)
+LeftMotor = motor(LeftMotor_m1, LeftMotor_m2, LeftMotor_pwm)
 
 
 
@@ -127,19 +127,15 @@ def right(data):#turns robot right
     if data <= 90:
         RightMotor.spin_backward()
         LeftMotor.spin_forward()
-        return False
     else:
         stop()
-        return True
 
 def left(data):#turns robot left
     if data <= -90:
         RightMotor.spin_forward()
         LeftMotor.spin_backward()
-        return False
     else:
         stop()
-        return True
 
 def oneeighty(data):#moves robot oneeighty
     if data <= -180:

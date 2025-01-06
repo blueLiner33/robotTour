@@ -1,53 +1,93 @@
-import movement as move
-import _thread
-import time
+import uasyncio as asyncio
 import read_sensors as resen
+import movement as move
 
-# Shared data and flags
+
 data_list = []
-lock = _thread.allocate_lock()
 complete = False
 current_movement = None
 
-# Thread to handle sensor updates and motor adjustments on core one
-def core_one_thread():
-    global lock, data_list, complete
-    while not complete:
-        with lock:
-            data_list = resen.get_data()
-            # Format of data_list: rpm1, degrees_one, rpm2, degrees_two, yaw, x_accel, y_accel, z_accel
-            if data_list:
-                # Update and adjust motor PID values
-                move.RightMotor_pid.update(data_list[0])  # RPM1
-                move.LeftMotor_pid.update(data_list[2])   # RPM2
-                move.RightMotor_pid.adjust()
-                move.LeftMotor_pid.adjust()
-        time.sleep(0.5)  # Prevent overloading the thread
 
-# Main loop to process movement commands
-#for testing
-start_forward_executed = True
-def process_command(movement):
-    global current_movement, complete, start_forward_executed, data_list
-    with lock:
-        if data_list != None:
-            if start_forward_executed == False:
-                # Initialize forward movement using x_accel (data_list[5])
-                move.start_forward(data_list[5])
+async def sensor_data_task():
+    global data_list
+    while not complete:
+        data_list = resen.get_data()
+        await asyncio.sleep(0.01) 
+
+
+async def main_loop(commands):
+    global complete, current_movement
+
+    command_index = 0
+    start_forward_executed = False
+    turns = 0
+
+    while not complete:
+        sensor_data = data_list
+
+        if not sensor_data:
+            print("no sensor data")
+            await asyncio.sleep(0.01)  
+            continue
+
+        #PID
+        move.RightMotor_pid.update(sensor_data[0])  # RPM1
+        move.LeftMotor_pid.update(sensor_data[2])   # RPM2
+        move.RightMotor_pid.adjust()
+        move.LeftMotor_pid.adjust()
+
+        #command process
+        if command_index < len(commands):
+            movement = commands[command_index]
+            current_movement = movement
+            print(f"Processing command {movement}, index {command_index}")
+            if not start_forward_executed:
+                move.distance_moved(sensor_data[5])
+                move.start_forward(move.get_distance_traveled())
                 start_forward_executed = True
+            elif movement == 0:  # Stop
+                move.stop()
+                command_index += 1
+            elif movement == 1:  # Forward
+                move.distance_moved(sensor_data[5])
+                move.forward(move.get_distance_traveled())
+            elif movement == 2:  # Right
+                if move.right(sensor_data[4] - (turns*90)):
+                    command_index += 1
+                    turns += 1
+            elif movement == 3:  # Left
+                if move.left(sensor_data[4] - (turns*90)):
+                    command_index += 1
+                    turns -= 1
+            elif movement == 4:  # 180
+                if move.oneeighty(sensor_data[4] - (turns*90)):
+                    command_index += 1
+                    turns -= 2
             else:
-                if movement == 0:  # Stop
-                    move.stop()
-                elif movement == 1:  # Move forward
-                    move.distance_moved(data_list[5])  # Update distance
-                    move.forward(data_list)
-                elif movement == 2:  # Turn right
-                    move.right(data_list[4])  # Use yaw (data_list[4])
-                elif movement == 3:  # Turn left
-                    move.left(data_list[4])  # Use yaw (data_list[4])
-                elif movement == 4:  # Perform 180-degree turn
-                    move.oneeighty(data_list[4])  # Use yaw (data_list[4])
-                time.sleep(0.1)  # Prevent overloading
-            move.stop()  # Ensure the motors are stopped after processing
+                command_index += 1
         else:
-            pass
+            
+            complete = True
+            print("commands done")
+            move.stop()
+
+        await asyncio.sleep(0.01)
+
+    print("loop stopped")
+
+
+def start_main_loop(commands):
+    
+    global complete
+    complete = False
+
+    try:
+        loop = asyncio.get_event_loop()
+        loop.create_task(sensor_data_task())  
+        loop.run_until_complete(main_loop(commands))  
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        complete = True
+
+

@@ -1,7 +1,8 @@
 # Imports
 import heaper as heap
 import grid_maker as gm
-
+class MazeSolvingError(Exception):
+    '''raised if maze-solving error'''
 def dijkstra(grid, start, goal):
     rows, cols = len(grid), len(grid[0])  
     priority_queue = []
@@ -42,7 +43,7 @@ def dijkstra(grid, start, goal):
                     previous_nodes[neighbor] = current_node
                     heap.heappush(priority_queue, (distance, neighbor))
 
-    raise TypeError('check points entered')
+    raise MazeSolvingError('check points entered. No solve detected')
 
 def closest_point(grid, start, goals):
     shortest = []

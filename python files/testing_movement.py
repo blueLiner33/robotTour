@@ -71,7 +71,9 @@ def get_movement_speed(target,commands):
     wheel_rotations+=first_move
     tpr = target-(total_commands*(0.1))/wheel_rotations #tpr = time per rotations|in secounds
     return tpr
+    
 #later this should be from the get movement speed function'''
+
 rpm = 20
 #creating motors
 RightMotor = motor(RightMotor_m1, RightMotor_m2, RightMotor_pwm)

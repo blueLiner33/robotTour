@@ -32,7 +32,7 @@ end_point = (3,3)#row,colums based on
 #**************************dependency***************************************************
 #setting imputs
 import path_solver as path
-import movement as move
+#import movement as move
 import threads
 commands = path.give_commands(start_point,end_point,gate_points,last_gate_point,blocks)
 if len(commands) >= 30:
@@ -42,5 +42,4 @@ else:
 
 #***********************************Main Code********************************************
 #might need to add a delay.
-commands = [2, 3, 3]
 threads.start_main_loop(commands)

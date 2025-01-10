@@ -1,7 +1,7 @@
 import functools
 #module only for debugging other sections of code
 
-def debug(func):#returns arguments of function and valeu
+def debug(func):#returns arguments of function and value
     @functools.wraps(func)
     def wrapper_debug(*args, **kwargs):
         args_repr = [repr(a) for a in args]

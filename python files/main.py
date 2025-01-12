@@ -42,4 +42,18 @@ else:
 
 #***********************************Main Code********************************************
 #might need to add a delay.
+import threads
+from machine import Pin
+import time
+button = Pin(4, Pin.IN, Pin.PULL_UP)
+switch = False
+while True:
+    if button.value() == 0:
+        switch = True
+        break
+    else:
+        pass
+    time.sleep(0.1)
+
+
 threads.start_main_loop(commands)

@@ -4,14 +4,17 @@
     do basic testing
     *fix distance_travled* issue with more than one forward. Start_forward should be fine.
     *add delay between actions. It is changing between them too fast.
+    solder
+    test pid and going streight
 *short term*
     fix the pid logic
     order robot motors
     full robot test as comp
     see if encoders can be PIO and still have another thread. Allows for encoders to run faster
+    add over distance and over turn fix
 *long term*
     make aliegnment tool
     get sensor for robot when it is close(ir sensor)
     look at notes if you are missing anything
     add optical sensor
-    
+    pcb

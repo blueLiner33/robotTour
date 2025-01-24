@@ -45,7 +45,7 @@ else:
 import threads
 from machine import Pin
 import time
-button = Pin(4, Pin.IN, Pin.PULL_UP)
+button = Pin(3, Pin.IN, Pin.PULL_UP)
 switch = False
 while True:
     if button.value() == 0:

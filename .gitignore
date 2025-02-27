@@ -1,1 +1,4 @@
-python files/
+python_files/
+Written_info/
+.pylintrc
+

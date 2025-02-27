@@ -1,9 +1,0 @@
-main
-    current grid and point in it
-movement
-    pins for each motor
-    pid constants for each motor
-    time_interval(how long it takes for updata)
-read_sensors
-    encoder pins
-    BNO08x pins

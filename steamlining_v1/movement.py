@@ -1,6 +1,5 @@
 from machine import Pin, PWM, UART
 import PID as pid
-from main import target_time, commands
 #**************************tuning variables*********************************************
 #kP          # proportional constant
 #Ki          # integral constant
@@ -51,30 +50,9 @@ class motor:
         self.m1.off()
         self.m2.off()
 
-#finds the speed to get time goal in rotations per minuite
-def get_movement_speed(target,commands):
-    total_commands = len(commands)
-    #assumes 50cm boxes
-    wheel_rotations = 0#keeps track for math
-    wheel_radius = 0#wheel radius in cm
-    width = 0 #width between the wheels
-    forward_movement = 50/(wheel_radius*3.14159*2)
-    first_move = 25/(wheel_radius*3.14159*2)
-    turn_movement = width/(4*wheel_radius)
-    
-    for command in commands:
-        if command == 0 or 3:
-            wheel_rotations+=forward_movement
-        if command == 1 or 2:
-            wheel_rotations+=turn_movement
-        else:
-            pass
-    wheel_rotations+=first_move
-    rpm = 60/(target-(total_commands*(0.1))/wheel_rotations) #rpm should be 
-    return rpm
 
-rpm = get_movement_speed(target_time,commands)
-
+rpm = 25
+#creating motors
 RightMotor = motor(RightMotor_m1, RightMotor_m2, RightMotor_pwm)
 LeftMotor = motor(LeftMotor_m1, LeftMotor_m2, LeftMotor_pwm)
 

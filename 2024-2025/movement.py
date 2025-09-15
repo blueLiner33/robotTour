@@ -46,6 +46,7 @@ class motor:
     def spin_backward(self):#motor command for backwards
         self.m1.off()
         self.m2.on()
+        
     def stop_power(self):#makes m1 and m2 off
         self.m1.off()
         self.m2.off()

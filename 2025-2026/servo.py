@@ -1,7 +1,6 @@
-from config.config import servo_pin
 from machine import PWM, Pin
 import time
-
+from config import servo_pin
 class servo:
     def __init__(self, servo_pin):
         self.servo_pin = PWM(Pin(servo_pin))
@@ -23,4 +22,4 @@ class servo:
             self.set_angle(angle)
             time.sleep(0.05)  
 
-grab_latch = servo(servo_pin)
+grap_latch = servo(servo_pin)

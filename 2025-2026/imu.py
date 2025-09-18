@@ -1,7 +1,9 @@
 import time
 from struct import unpack_from
 from machine import UART, Pin, Timer
-from config import uart0
+from config import uart_tx_pin, uart_rx_pin
+
+uart0 = UART(0, baudrate=115200, tx=Pin(uart_tx_pin), rx=Pin(uart_rx_pin)) 
 
 class RVCReadTimeoutError(Exception):
     """Raised if a UART-RVC message cannot be read before the given timeout."""
@@ -10,6 +12,7 @@ class BNO08x_RVC:
         self._uart = uart
         self._debug = True
         self._read_timeout = int(timeout * 1000)  
+        self._last_time = None 
     @staticmethod
     def _parse_frame(frame: bytes):
         """Parse a frame of data from the BNO08x."""
@@ -44,25 +47,30 @@ class BNO08x_RVC:
             return None
     @property
     def heading(self):
-        """Fetch the current heading."""
         start_time = time.ticks_ms()
         while time.ticks_diff(time.ticks_ms(), start_time) < self._read_timeout:
             data = self._uart.read(2)
-            if data is None or len(data) < 2:  
+            if not data or len(data) < 2:
                 continue
             if data[0] == 0xAA and data[1] == 0xAA:
                 msg = self._uart.read(17)
-                if msg is None or len(msg) < 17: 
+                if not msg or len(msg) < 17:
                     continue
                 heading = self._parse_frame(msg)
                 if heading is None:
                     continue
-                return heading
+
+                
+                now = time.ticks_ms()
+                if self._last_time is None:
+                    dt = 0
+                else:
+                    dt = time.ticks_diff(now, self._last_time) / 1000  # seconds
+                self._last_time = now
+
+                return (heading, dt)
+            
         raise RVCReadTimeoutError("Unable to read RVC heading message")
+    
 rvc = BNO08x_RVC(uart0)
 
-def get_data():# might not be needed 
-    try:
-        yaw, pitch, roll, x_accel, y_accel, z_accel = rvc.heading
-    except RVCReadTimeoutError as e:
-        print("Timeout reading RVC heading:", e)

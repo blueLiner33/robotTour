@@ -44,9 +44,17 @@ edge_distance = 25 #cm
 wheel_diameter = 50 #mm
 span_wheels = 10 #mm distance between wheels
 
-
 #motors
 
 
 #movement
 encoder_merge_factor = .2 #amount of weight encoders have
+
+
+#Kalman filter
+Qx = 0.05      # Encoder noise for x
+Rx = 0.1       # IMU noise for x
+Qy = 0.05      # Encoder noise for y
+Ry = 0.1       # IMU noise for y
+Qtheta = 0.01  # Encoder noise for theta
+Rtheta = 0.05  # IMU noise for theta

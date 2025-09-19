@@ -1,20 +1,16 @@
-robot/
-│── main.py               # High-level program (game-day logic)
+robot
+│── main.py         # High-level program (commands)
 │
-├── config/
-│   └── config.py         # Constants only: pins, wheel size, pulses, speeds
+├── config.py       # Constants only: pins, wheel size, pulses, speeds 
 │
-├── movement/
-│   ├── __init__.py       # empty or convenience imports
-│   ├── motors.py         # low-level motor wrapper
-│   ├── encoders.py       # low-level encoder wrapper
-│   ├── movement.py       # high-level movement primitives (cells, turns)
-│   └── servo.py          # servo wrapper for bottles
+├── sensor_fusion.py     #position tracking and sensor combining
 │
-├── sensors/
-│   ├── __init__.py       # empty or convenience imports
-│   └── imu.py            # IMU wrapper
+├── encoders.py     #encoder class and reading
 │
-└── utils/
-    ├── __init__.py       # empty or convenience imports
-    └── helpers.py        # math, unit conversions, filtering
+├── imu.py          #imu class and reading
+│
+├── servo.py        #water bottle control
+│
+├── PID.py          #adjusts pwm based on goals
+│
+├── motors.py       #low level motor control

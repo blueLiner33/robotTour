@@ -1,6 +1,7 @@
 from machine import Pin, PWM
 from config import RightMotor_m1,RightMotor_m2,RightMotor_pwm,LeftMotor_m1,LeftMotor_m2,LeftMotor_pwm
 
+
 class motor:
     def __init__(self, m1_Pin, m2_Pin, PWM_Pin):
         
@@ -11,22 +12,38 @@ class motor:
         #pwm
         self.pwm = PWM(Pin(PWM_Pin))
         self.pwm.freq(20000)
-        self.pwm.duty_u16(int(-))
+        self.last_speed = 0
+        self.pwm.duty_u16(int())
         
-    def spin_forward(self):#motor command for forward
-        self.m1.on()
-        self.m2.off()
-        
-    def spin_backward(self):#motor command for backwards
-        self.m1.off()
-        self.m2.on()
-        
-    def stop_power(self):#makes m1 and m2 off
+    def stop_power(self):#for full stop
         self.m1.off()
         self.m2.off()
 
-    def adjust_pwm(self,goal):
-        self.pwm.duty_u16(int(65536 * goal))
+    def set_speed(self, speed):
+
+            #speed [-1.0, 1.0]
+            #Negative -> reverse, Positive -> forward
+            
+            if speed > 1.0:
+                speed = 1.0
+            if speed < -1.0:
+                speed = -1.0
+
+            duty = int(abs(speed) * 65535)
+
+            if speed > 0:
+                self.m1.on()
+                self.m2.off()
+            elif speed < 0:
+                self.m1.off()
+                self.m2.on()
+            else:
+                self.m1.off()
+                self.m2.off()
+                duty = 0
+
+            self.pwm.duty_u16(duty)
+            self.last_speed = speed
 
 RightMotor = motor(RightMotor_m1, RightMotor_m2, RightMotor_pwm)
 LeftMotor = motor(LeftMotor_m1, LeftMotor_m2, LeftMotor_pwm)

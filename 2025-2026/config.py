@@ -58,3 +58,12 @@ Qy = 0.05      # Encoder noise for y
 Ry = 0.1       # IMU noise for y
 Qtheta = 0.01  # Encoder noise for theta
 Rtheta = 0.05  # IMU noise for theta
+
+#PID
+turn_kp = 0
+turn_ki = 0
+turn_kd = 0
+
+forward_kp = 0
+forward_ki = 0
+forward_kd = 0

@@ -1,25 +1,28 @@
 from machine import PWM, Pin
 import time
 from config import servo_pin
-class servo:
-    def __init__(self, servo_pin):
-        self.servo_pin = PWM(Pin(servo_pin))
-        self.servo_pin.freq(50)
 
-    def set_angle(self, angle): 
-        max_duty = 8192  
-        min_duty = 1638   
-        duty = int(min_duty + (angle / 180) * (max_duty - min_duty))
-        self.servo_pin.duty_u16(duty)
+class Servo:
+    def __init__(self, servo_pin, freq=50, min_ms=0.5, max_ms=2.4):
+        self.pwm = PWM(Pin(servo_pin))
+        self.pwm.freq(freq)
+        self.min_ms = min_ms
+        self.max_ms = max_ms
+        self.period_ms = 1000 / freq 
 
-    def open (self):
-        for angle in range(0, 90, 5): 
-            self.set_angle(angle)
-            time.sleep(0.05)  
+    def _ms_to_duty_u16(self, ms):
+        return int((ms / self.period_ms) * 65535)
 
-    def close (self):
-        for angle in range(90, 0, 5):  
-            self.set_angle(angle)
-            time.sleep(0.05)  
+    def set_angle(self, angle):
+        if angle < 0: angle = 0
+        if angle > 180: angle = 180
+        ms = self.min_ms + (angle / 180.0) * (self.max_ms - self.min_ms)
+        self.pwm.duty_u16(self._ms_to_duty_u16(ms))
 
-grap_latch = servo(servo_pin)
+    def open(self):
+        self.set_angle(90)
+
+    def close(self):
+        self.set_angle(0)
+
+grap_latch = Servo(servo_pin)
